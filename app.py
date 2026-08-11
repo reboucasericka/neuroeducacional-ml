@@ -42,7 +42,9 @@ def create_app(*, testing: bool = False) -> Flask:
     app = Flask(__name__)
 
     base_dir = Path(__file__).resolve().parent
-    apply_config(app, base_dir)
+    if testing:
+        app.config["TESTING"] = True
+    apply_config(app, base_dir, testing=testing)
 
     if testing:
         app.config["TESTING"] = True

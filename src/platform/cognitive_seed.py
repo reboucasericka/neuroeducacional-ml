@@ -7,7 +7,7 @@ como melhoria futura (não implementado nesta fase).
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from src.platform.anamnesis_utils import slugify
 from src.platform.extensions import db
@@ -172,13 +172,16 @@ def ensure_demo_cognitive_patient() -> None:
         patient = Patient(
             professional_id=pro.id,
             internal_code="DEMO-001",
-            name="Paciente DEMO Cognitivo",
-            birth_date=datetime.now(timezone.utc).date() - timedelta(days=365 * 10 + 20),
+            name="Lara Mendes",
+            birth_date=date(2016, 3, 15),
             sex="feminino",
             education_level="5º ano",
             is_minor=True,
             status="ativo",
-            notes="DEMONSTRAÇÃO — perfil cognitivo fictício para portfólio. Não são normas.",
+            notes=(
+                "DEMONSTRAÇÃO — perfil cognitivo fictício para portfólio. "
+                "Não são normas. Dados fictícios."
+            ),
         )
         db.session.add(patient)
         db.session.flush()

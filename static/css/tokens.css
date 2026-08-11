@@ -69,8 +69,9 @@
   --space-10: 9rem;
 
   --section-pad-y: clamp(4.5rem, 10vw, 7.5rem);
-  --container: min(1120px, calc(100% - 2.5rem));
-  --container-wide: min(1240px, calc(100% - 2.5rem));
+  --page-gutter: clamp(2.5rem, 10vw, 7rem);
+  --container: min(1120px, calc(100% - (var(--page-gutter) * 2)));
+  --container-wide: min(1240px, calc(100% - (var(--page-gutter) * 2)));
 
   /* Forma */
   --radius-sm: 0.5rem;

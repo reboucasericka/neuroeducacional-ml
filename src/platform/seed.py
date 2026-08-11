@@ -11,6 +11,7 @@ from src.platform.cognitive_seed import (
     ensure_cognitive_catalog,
     ensure_demo_cognitive_patient,
 )
+from src.platform.demo_seed import ensure_portfolio_demo
 from src.platform.extensions import db
 from src.platform.instruments_seed import ensure_instrument_catalog
 from src.platform.models import (
@@ -39,7 +40,7 @@ def seed_demo_data() -> None:
         if pro.professional_type != normalized:
             pro.professional_type = normalized
         if not pro.preferred_subject_term:
-            pro.preferred_subject_term = "patient"
+            pro.preferred_subject_term = "learner"
         if pro.onboarding_completed is None:
             pro.onboarding_completed = True
         # Corrigir nomes demo legados "Paciente Demonstração *"
@@ -61,7 +62,7 @@ def seed_demo_data() -> None:
             workplace="Consultório Demonstração",
             city="São Paulo",
             state="SP",
-            preferred_subject_term="patient",
+            preferred_subject_term="learner",
             onboarding_completed=True,
             is_active=True,
         )
@@ -122,3 +123,4 @@ def seed_demo_data() -> None:
     ensure_instrument_catalog()
     ensure_cognitive_catalog()
     ensure_demo_cognitive_patient()
+    ensure_portfolio_demo()

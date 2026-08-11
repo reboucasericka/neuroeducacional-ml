@@ -1,272 +1,36 @@
-{% extends "base.html" %}
-
-{% block title %}NeuroLearn Analytics — Neuropsicopedagogia e Psicopedagogia{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}NeuroLearn Analytics — Neuropsicopedagogia e
+Psicopedagogia{% endblock %} {% block content %}
 <section class="hero" aria-labelledby="hero-title">
+  <div
+    class="hero__backdrop"
+    aria-hidden="true"
+    style="--hero-image: url('{{ url_for('static', filename='img/hero-sala-neuropsicopedagogia.jpg') }}')"
+  ></div>
   <div class="container container--wide hero__grid">
     <div class="hero__copy reveal">
-      <p class="eyebrow">Neuropsicopedagogia · Psicopedagogia</p>
+      <p class="eyebrow">Plataforma experimental · Portfólio académico</p>
       <h1 id="hero-title" class="hero__title">
-        Plataforma para<br />
-        <span class="accent-sage">Neuropsicopedagogia</span><br />
-        e Psicopedagogia
+        Do primeiro registo à <span class="accent-sage">evolução</span> da aprendizagem
       </h1>
       <p class="hero__lead">
-        Organize anamneses, avaliações, sessões, perfis cognitivos,
-        intervenções e evolução num prontuário longitudinal —
-        pensado para a prática no contexto brasileiro.
+        NeuroLearn Analytics organiza anamneses, avaliações, perfil cognitivo, intervenção e
+        evolução longitudinal num prontuário pensado para Neuropsicopedagogia e Psicopedagogia.
       </p>
       <div class="hero__actions">
-        <a class="btn btn--primary" href="#feito-para">Conhecer plataforma</a>
-        <a class="btn btn--ghost" href="{{ url_for('auth.login') }}">Área do profissional</a>
+        <a class="btn btn--primary" href="{{ url_for('auth.login') }}">Explorar demonstração</a>
+        <a class="btn btn--ghost" href="#avaliacao">Conhecer o projeto</a>
       </div>
       <div class="hero__stats" aria-label="Contextos de prática">
-        <span class="hero__stat"><span class="hero__stat-dot" aria-hidden="true"></span>Clínica</span>
-        <span class="hero__stat"><span class="hero__stat-dot" aria-hidden="true"></span>Institucional</span>
-        <span class="hero__stat"><span class="hero__stat-dot" aria-hidden="true"></span>Psicopedagogia</span>
+        <span class="hero__stat"
+          ><span class="hero__stat-dot" aria-hidden="true"></span>Clínica</span
+        >
+        <span class="hero__stat"
+          ><span class="hero__stat-dot" aria-hidden="true"></span>Institucional</span
+        >
+        <span class="hero__stat"
+          ><span class="hero__stat-dot" aria-hidden="true"></span>Psicopedagogia</span
+        >
       </div>
-    </div>
-
-    <div class="hero__visual reveal" aria-label="Demonstração visual de prontuário">
-      <span class="hero-orb hero-orb--one" aria-hidden="true"></span>
-      <span class="hero-orb hero-orb--two" aria-hidden="true"></span>
-
-      <article class="hero-panel">
-        <div class="hero-panel__top">
-          <div>
-            <p class="eyebrow" style="margin-bottom: 0.4rem">Prontuário</p>
-            <p class="hero-panel__label">Aprendente · Cód. P-0248</p>
-            <p class="muted" style="margin-top: 0.25rem">12 anos · última avaliação 08 ago 2026</p>
-          </div>
-          <span class="badge-demo">Demonstração</span>
-        </div>
-
-        <div class="score-list">
-          <div class="score-row">
-            <span>Atenção / FE</span>
-            <div class="score-track" aria-hidden="true"><div class="score-fill" style="--value: 68%; --tone: var(--rose)"></div></div>
-            <strong>68</strong>
-          </div>
-          <div class="score-row">
-            <span>Memória</span>
-            <div class="score-track" aria-hidden="true"><div class="score-fill" style="--value: 61%; --tone: var(--lilac)"></div></div>
-            <strong>61</strong>
-          </div>
-          <div class="score-row">
-            <span>Linguagem</span>
-            <div class="score-track" aria-hidden="true"><div class="score-fill" style="--value: 74%; --tone: var(--sky)"></div></div>
-            <strong>74</strong>
-          </div>
-          <div class="score-row">
-            <span>Leitura</span>
-            <div class="score-track" aria-hidden="true"><div class="score-fill" style="--value: 59%; --tone: var(--sage)"></div></div>
-            <strong>59</strong>
-          </div>
-        </div>
-      </article>
-
-      <aside class="hero-float hero-float--cluster">
-        <span class="hero-float__label">Avaliações</span>
-        <span class="hero-float__value">4</span>
-      </aside>
-      <aside class="hero-float hero-float--risk">
-        <span class="hero-float__label">Última evolução</span>
-        <span class="hero-float__value">há 12 dias</span>
-      </aside>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="feito-para" aria-labelledby="feito-para-title">
-  <div class="container">
-    <header class="section__header reveal">
-      <p class="eyebrow">Público</p>
-      <h2 id="feito-para-title">Feito para a sua prática</h2>
-      <p>Três contextos. Uma plataforma. Linguagem prudente, sem pretensão diagnóstica médica.</p>
-    </header>
-    <div class="audience-grid reveal">
-      <article class="audience-card audience-card--rose">
-        <h3>Neuropsicopedagogia Clínica</h3>
-        <p>
-          Avaliação, investigação das funções cognitivas relacionadas
-          à aprendizagem, acompanhamento e intervenção.
-        </p>
-      </article>
-      <article class="audience-card audience-card--sage">
-        <h3>Neuropsicopedagogia Institucional</h3>
-        <p>
-          Observação e acompanhamento dos processos de aprendizagem
-          em contextos institucionais e educacionais.
-        </p>
-      </article>
-      <article class="audience-card audience-card--sky">
-        <h3>Psicopedagogia</h3>
-        <p>
-          Avaliação e acompanhamento das dificuldades e potencialidades
-          relacionadas ao processo de aprendizagem.
-        </p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<section class="bridge" id="plataforma" aria-labelledby="plataforma-title">
-  <div class="bridge__card reveal">
-    <h2 id="plataforma-title">Um percurso, não apenas um resultado.</h2>
-    <p>
-      A informação permanece organizada ao longo do tempo: anamnese, avaliação,
-      resultados, plano e evolução — sem substituir o julgamento profissional.
-    </p>
-  </div>
-</section>
-
-<section class="section" aria-labelledby="fluxo-title">
-  <div class="container">
-    <header class="section__header reveal">
-      <p class="eyebrow">Fluxo</p>
-      <h2 id="fluxo-title">Da anamnese à evolução</h2>
-      <p>Tudo acontece no prontuário, em sequência temporal. A inteligência analítica só entra depois.</p>
-    </header>
-    <ol class="pipeline reveal">
-      <li class="pipeline-step"><span class="pipeline-step__index">01</span><div><h3>Anamnese</h3><p>Modelos configuráveis por contexto.</p></div></li>
-      <li class="pipeline-step"><span class="pipeline-step__index">02</span><div><h3>Instrumentos</h3><p>Catálogo organizado (ansiedade, depressão, neuropsicologia, aprendizagem).</p></div></li>
-      <li class="pipeline-step"><span class="pipeline-step__index">03</span><div><h3>Avaliação</h3><p>Registo estruturado de momentos clínicos.</p></div></li>
-      <li class="pipeline-step"><span class="pipeline-step__index">04</span><div><h3>Perfil</h3><p>Síntese cognitiva e educacional no tempo.</p></div></li>
-      <li class="pipeline-step"><span class="pipeline-step__index">05</span><div><h3>Plano</h3><p>Intervenção documentada e revisável.</p></div></li>
-      <li class="pipeline-step"><span class="pipeline-step__index">06</span><div><h3>Evolução</h3><p>Acompanhamento longitudinal.</p></div></li>
-    </ol>
-  </div>
-</section>
-
-<section class="section preview" id="prontuario" aria-labelledby="prontuario-title">
-  <div class="container">
-    <header class="section__header reveal">
-      <p class="eyebrow">Prontuário</p>
-      <h2 id="prontuario-title">O prontuário é o coração do sistema.</h2>
-      <p>Não o aprendente isolado, nem o ML — tudo aparece temporalmente dentro do prontuário.</p>
-    </header>
-    <div class="preview-shell reveal">
-      <div class="preview-shell__bar">
-        <div class="preview-shell__dots" aria-hidden="true"><span></span><span></span><span></span></div>
-        <span class="badge-demo">Demonstração</span>
-      </div>
-      <div class="preview-grid" style="grid-template-columns: 1fr;">
-        <article class="preview-card">
-          <div class="record-tabs" style="margin-bottom: 1rem;">
-            <span class="tag">Visão Geral</span>
-            <span class="tag tag--sky">Anamnese</span>
-            <span class="tag">Avaliações</span>
-            <span class="tag tag--lilac">Resultados</span>
-            <span class="tag tag--gold">Intervenção</span>
-            <span class="tag">Evolução</span>
-          </div>
-          <p class="preview-metric" style="font-size: 1.35rem;">Linha do tempo preservada</p>
-          <p class="preview-caption">Anamnese → Instrumentos → Avaliação → Perfil → Plano → Evolução</p>
-        </article>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="avaliacao" aria-labelledby="avaliacao-title">
-  <div class="container">
-    <header class="section__header reveal">
-      <p class="eyebrow">Avaliação multidimensional</p>
-      <h2 id="avaliacao-title">Seis dimensões para organizar informação.</h2>
-      <p>Construtos teóricos — não classificações diagnósticas.</p>
-    </header>
-    <div class="domains-grid">
-      <article class="domain-card domain-card--fe reveal"><div class="domain-card__num">01</div><h3>Atenção e Funções Executivas</h3><p>Atenção, inibição, flexibilidade, planeamento e monitoramento.</p></article>
-      <article class="domain-card domain-card--mem reveal"><div class="domain-card__num">02</div><h3>Memória de Trabalho</h3><p>Span, manutenção, visuoespacial e manipulação.</p></article>
-      <article class="domain-card domain-card--lang reveal"><div class="domain-card__num">03</div><h3>Linguagem Oral</h3><p>Processamento fonológico, vocabulário e compreensão.</p></article>
-      <article class="domain-card domain-card--acad reveal"><div class="domain-card__num">04</div><h3>Leitura</h3><p>Decodificação, precisão, fluência e compreensão.</p></article>
-      <article class="domain-card domain-card--soc reveal"><div class="domain-card__num">05</div><h3>Escrita</h3><p>Fonema-grafema, ortografia, precisão e produção.</p></article>
-      <article class="domain-card domain-card--fe reveal"><div class="domain-card__num">06</div><h3>Aritmética</h3><p>Processamento numérico, cálculo e factos aritméticos.</p></article>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="instrumentos" aria-labelledby="instrumentos-title">
-  <div class="container">
-    <header class="section__header reveal">
-      <p class="eyebrow">Instrumentos</p>
-      <h2 id="instrumentos-title">Um catálogo preparado para diferentes contextos.</h2>
-      <p>
-        A disponibilidade e digitalização de instrumentos dependem de direitos de
-        utilização e critérios profissionais. Nesta fase: categorias, sem itens reais.
-      </p>
-    </header>
-    <div class="models-grid models-grid--class reveal">
-      <article class="model-card"><h3>Neuropsicológicos</h3><p>Funções cognitivas e executivas.</p></article>
-      <article class="model-card"><h3>Aprendizagem</h3><p>Leitura, escrita e aritmética.</p></article>
-      <article class="model-card"><h3>Ansiedade</h3><p>Contextos infantis, adolescentes e adultos.</p></article>
-      <article class="model-card"><h3>Depressão</h3><p>Indicadores e acompanhamento longitudinal.</p></article>
-      <article class="model-card"><h3>Qualidade de Vida</h3><p>Bem-estar e funcionamento quotidiano.</p></article>
-      <article class="model-card model-card--cluster"><h3>Comportamento</h3><p>Observação e registos profissionais.</p></article>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="tecnologia" aria-labelledby="tecnologia-title">
-  <div class="container">
-    <header class="section__header reveal">
-      <p class="eyebrow">Tecnologia</p>
-      <h2 id="tecnologia-title">A tecnologia apoia. O profissional decide.</h2>
-      <p>
-        Organização de dados, análise estatística, perfis e Machine Learning
-        experimental — sempre sobre conjuntos preparados e, no futuro,
-        pseudonimizados. Os modelos computacionais não substituem interpretação profissional.
-      </p>
-    </header>
-    <div class="models-layout reveal">
-      <div class="models-group">
-        <p class="models-group__label">Camada analítica</p>
-        <div class="models-grid models-grid--class">
-          <article class="model-card"><h3>Dataset sintético</h3><p>Laboratório de Data Science preservado.</p></article>
-          <article class="model-card"><h3>Scores por domínio</h3><p>Agregações descritivas, não clínicas.</p></article>
-          <article class="model-card"><h3>ML experimental</h3><p>Classificação e clustering em dados sintéticos.</p></article>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section ethics" id="seguranca" aria-labelledby="seguranca-title">
-  <div class="container">
-    <div class="ethics__inner reveal">
-      <div>
-        <p class="eyebrow">Segurança</p>
-        <h2 id="seguranca-title" style="margin-top: 0.75rem">
-          Dados sensíveis exigem cuidado sério.
-        </h2>
-        <p class="ethics__text" style="margin-top: 1rem">
-          Acesso autenticado, isolamento por profissional e preparação para
-          auditoria. Não afirmamos certificações ou conformidade que o sistema
-          ainda não possui — privacidade por design desde a arquitetura.
-        </p>
-      </div>
-      <ul class="ethics__points">
-        <li class="ethics__point"><i aria-hidden="true"></i>Acesso profissional</li>
-        <li class="ethics__point"><i aria-hidden="true"></i>Dados isolados por utilizador</li>
-        <li class="ethics__point"><i aria-hidden="true"></i>Histórico longitudinal</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="etica" aria-labelledby="etica-title">
-  <div class="container">
-    <header class="section__header reveal">
-      <p class="eyebrow">Ética</p>
-      <h2 id="etica-title">Desenvolvimento académico e experimental.</h2>
-    </header>
-    <div class="about-grid reveal">
-      <p>
-        Esta aplicação encontra-se em desenvolvimento académico e experimental.
-        Não constitui dispositivo médico, não realiza diagnóstico automático e
-        não substitui avaliação, julgamento ou decisão de profissionais qualificados.
-      </p>
     </div>
   </div>
 </section>
@@ -274,23 +38,151 @@
 <section class="section" id="sobre" aria-labelledby="sobre-title">
   <div class="container">
     <header class="section__header reveal">
-      <p class="eyebrow">Sobre</p>
-      <h2 id="sobre-title">Organizar. Acompanhar. Analisar.</h2>
+      <p class="eyebrow">Para quem</p>
+      <h2 id="sobre-title">Feito para a prática profissional</h2>
+      <p>Três contextos. Uma plataforma. Sem pretensão diagnóstica médica.</p>
     </header>
-    <div class="about-grid reveal">
-      <p>
-        NeuroLearn Analytics integra desenvolvimento web, modelagem de dados e
-        Data Science para explorar como anamneses, avaliações e indicadores
-        cognitivos podem ser estruturados ao longo do tempo.
-      </p>
-      <p>
-        O Machine Learning permanece como camada de apoio experimental sobre
-        dados sintéticos — separado do prontuário identificável.
-      </p>
-      <p>
-        <a class="btn btn--primary" href="{{ url_for('auth.login') }}">Entrar na área profissional</a>
-      </p>
+    <div class="audience-grid reveal">
+      <article class="audience-card audience-card--rose">
+        <h3>Neuropsicopedagogia Clínica</h3>
+        <p>Avaliação e acompanhamento das funções cognitivas relacionadas à aprendizagem.</p>
+      </article>
+      <article class="audience-card audience-card--sage">
+        <h3>Neuropsicopedagogia Institucional</h3>
+        <p>Observação e acompanhamento dos processos de aprendizagem em contextos educacionais.</p>
+      </article>
+      <article class="audience-card audience-card--sky">
+        <h3>Psicopedagogia</h3>
+        <p>Organização de dificuldades e potencialidades no percurso de aprendizagem.</p>
+      </article>
     </div>
+  </div>
+</section>
+
+<section class="section" id="avaliacao" aria-labelledby="avaliacao-title">
+  <div class="container">
+    <header class="section__header reveal">
+      <p class="eyebrow">Fluxo profissional</p>
+      <h2 id="avaliacao-title">Do registo à evolução</h2>
+      <p>O prontuário é o eixo temporal — não o aprendente isolado, nem o Machine Learning.</p>
+    </header>
+    <ol class="pipeline reveal">
+      <li class="pipeline-step">
+        <span class="pipeline-step__index">01</span>
+        <div>
+          <h3>Anamnese</h3>
+          <p>Modelos configuráveis, incluindo V2 com ~99 campos.</p>
+        </div>
+      </li>
+      <li class="pipeline-step">
+        <span class="pipeline-step__index">02</span>
+        <div>
+          <h3>Avaliação</h3>
+          <p>Instrumentos (metadados) e resultados manuais do profissional.</p>
+        </div>
+      </li>
+      <li class="pipeline-step">
+        <span class="pipeline-step__index">03</span>
+        <div>
+          <h3>Perfil Cognitivo</h3>
+          <p>Indicadores longitudinais com rastreabilidade.</p>
+        </div>
+      </li>
+      <li class="pipeline-step">
+        <span class="pipeline-step__index">04</span>
+        <div>
+          <h3>Intervenção</h3>
+          <p>Plano, objetivos, estratégias e revisões.</p>
+        </div>
+      </li>
+      <li class="pipeline-step">
+        <span class="pipeline-step__index">05</span>
+        <div>
+          <h3>Evolução</h3>
+          <p>Registos qualitativos ao longo do tempo.</p>
+        </div>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<section class="bridge" id="plataforma" aria-labelledby="plataforma-title">
+  <div class="bridge__card reveal">
+    <h2 id="plataforma-title">O que resolve?</h2>
+    <p>
+      Dispersão de informação entre ficheiros e cadernos. NeuroLearn concentra o percurso —
+      anamnese, sessões, avaliações, devolutiva e evolução — com isolamento por profissional e
+      linguagem prudente.
+    </p>
+  </div>
+</section>
+
+<section class="section" id="tecnologia" aria-labelledby="tecnologia-title">
+  <div class="container">
+    <header class="section__header reveal">
+      <p class="eyebrow">Origem académica</p>
+      <h2 id="tecnologia-title">Data Science experimental</h2>
+    </header>
+    <div class="models-layout reveal">
+      <div class="models-group">
+        <p class="models-group__label">Pipeline sintético</p>
+        <div class="models-grid models-grid--class">
+          <article class="model-card">
+            <h3>Dataset sintético</h3>
+            <p>Features neuroeducacionais geradas — sem PII.</p>
+          </article>
+          <article class="model-card">
+            <h3>EDA</h3>
+            <p>Distribuições, correlações e exploração visual.</p>
+          </article>
+          <article class="model-card">
+            <h3>Classificação</h3>
+            <p>Decision Tree sobre target sintético.</p>
+          </article>
+          <article class="model-card">
+            <h3>Clustering</h3>
+            <p>KMeans exploratório em features cognitivas.</p>
+          </article>
+        </div>
+      </div>
+    </div>
+    <p class="muted reveal" style="margin-top: 1.25rem; max-width: 40rem"></p>
+  </div>
+</section>
+
+<section class="section ethics" id="seguranca" aria-labelledby="seguranca-title">
+  <div class="container">
+    <div class="ethics__inner reveal">
+      <div>
+        <p class="eyebrow">Segurança &amp; ética</p>
+        <h2 id="seguranca-title" style="margin-top: 0.75rem">
+          Dados sensíveis exigem cuidado sério.
+        </h2>
+        <p class="ethics__text" style="margin-top: 1rem">
+          Autenticação, CSRF, isolamento por profissional e POST para mutações. Não afirmamos
+          certificação LGPD nem dispositivo médico.
+        </p>
+      </div>
+      <ul class="ethics__points">
+        <li class="ethics__point"><i aria-hidden="true"></i>Acesso profissional</li>
+        <li class="ethics__point"><i aria-hidden="true"></i>Isolamento por profissional</li>
+        <li class="ethics__point"><i aria-hidden="true"></i>Demo claramente marcada</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="cta-final" aria-labelledby="cta-title">
+  <div class="container">
+    <header class="section__header reveal">
+      <p class="eyebrow">Demonstração</p>
+      <h2 id="cta-title">Explorar o prontuário fictício</h2>
+      <p>Conta demo só para desenvolvimento local — caso <strong>DEMO-001</strong> Lara Mendes (fictício).</p>
+    </header>
+    <p class="reveal">
+      <a class="btn btn--primary" href="{{ url_for('auth.login') }}">Entrar na demonstração</a>
+      <a class="btn btn--ghost" href="#avaliacao">Ver o fluxo</a>
+    </p>
   </div>
 </section>
 {% endblock %}

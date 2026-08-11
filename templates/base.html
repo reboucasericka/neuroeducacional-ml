@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt">
   <head>
     <meta charset="utf-8" />
@@ -23,7 +23,7 @@
 
     <header class="site-header" id="topo">
       <div class="site-header__inner">
-        <a class="brand" href="#topo" aria-label="NeuroLearn Analytics — início">
+        <a class="brand" href="{{ url_for('index') }}" aria-label="NeuroLearn Analytics — início">
           <span class="brand__mark" aria-hidden="true"></span>
           <span class="brand__text">
             <span class="brand__name">NeuroLearn</span>
@@ -32,17 +32,25 @@
         </a>
 
         <nav class="nav-desktop" aria-label="Principal">
-          <a href="#topo">Início</a>
-          <a href="#plataforma">Plataforma</a>
-          <a href="#avaliacao">Avaliação</a>
-          <a href="#tecnologia">Tecnologia</a>
-          <a href="#seguranca">Segurança</a>
-          <a href="#sobre">Sobre</a>
+          <a href="{{ url_for('index') }}">Início</a>
+          <a href="{{ url_for('index') }}#plataforma">Plataforma</a>
+          <a href="{{ url_for('index') }}#avaliacao">Avaliação</a>
+          <a href="{{ url_for('index') }}#tecnologia">Tecnologia</a>
+          <a href="{{ url_for('index') }}#seguranca">Segurança</a>
+          <a href="{{ url_for('index') }}#sobre">Sobre</a>
         </nav>
 
         <div class="header-actions">
-          <a class="btn btn--ghost btn--header header-cta-desktop" href="{{ url_for('auth.login') }}">Entrar</a>
-          <a class="btn btn--primary btn--header header-cta-desktop" href="#plataforma">Conhecer plataforma</a>
+          <a
+            class="btn btn--ghost btn--header header-cta-desktop"
+            href="{{ url_for('auth.login') }}"
+            >Entrar</a
+          >
+          <a
+            class="btn btn--primary btn--header header-cta-desktop"
+            href="{{ url_for('index') }}#plataforma"
+            >Conhecer plataforma</a
+          >
           <button
             class="nav-toggle"
             type="button"
@@ -58,44 +66,39 @@
       </div>
 
       <nav class="nav-mobile" id="menu-mobile" aria-label="Mobile">
-        <a href="#topo">Início</a>
-        <a href="#plataforma">Plataforma</a>
-        <a href="#avaliacao">Avaliação</a>
-        <a href="#tecnologia">Tecnologia</a>
-        <a href="#seguranca">Segurança</a>
-        <a href="#sobre">Sobre</a>
+        <a href="{{ url_for('index') }}">Início</a>
+        <a href="{{ url_for('index') }}#plataforma">Plataforma</a>
+        <a href="{{ url_for('index') }}#avaliacao">Avaliação</a>
+        <a href="{{ url_for('index') }}#tecnologia">Tecnologia</a>
+        <a href="{{ url_for('index') }}#seguranca">Segurança</a>
+        <a href="{{ url_for('index') }}#sobre">Sobre</a>
         <a href="{{ url_for('auth.login') }}">Entrar</a>
-        <a href="#plataforma">Conhecer plataforma</a>
+        <a href="{{ url_for('index') }}#plataforma">Conhecer plataforma</a>
       </nav>
     </header>
 
-    <main id="conteudo">
-      {% block content %}{% endblock %}
-    </main>
+    <main id="conteudo">{% block content %}{% endblock %}</main>
 
     <footer class="site-footer">
       <div class="container footer-grid">
         <div class="footer-brand">
-          <a class="brand" href="#topo">
+          <a class="brand" href="{{ url_for('index') }}">
             <span class="brand__mark" aria-hidden="true"></span>
             <span class="brand__text">
               <span class="brand__name">NeuroLearn</span>
               <span class="brand__tag">Analytics</span>
             </span>
           </a>
-          <p>
-            Plataforma experimental para avaliação, acompanhamento e análise
-            profissional.
-          </p>
+          <p>Plataforma experimental para avaliação, acompanhamento e análise profissional.</p>
         </div>
 
         <div class="footer-col">
           <h3>Navegação</h3>
-          <a href="#plataforma">Plataforma</a>
-          <a href="#avaliacao">Avaliação</a>
-          <a href="#tecnologia">Tecnologia</a>
-          <a href="#seguranca">Segurança</a>
-          <a href="#sobre">Sobre</a>
+          <a href="{{ url_for('index') }}#plataforma">Plataforma</a>
+          <a href="{{ url_for('index') }}#avaliacao">Avaliação</a>
+          <a href="{{ url_for('index') }}#tecnologia">Tecnologia</a>
+          <a href="{{ url_for('index') }}#seguranca">Segurança</a>
+          <a href="{{ url_for('index') }}#sobre">Sobre</a>
           <a href="{{ url_for('auth.login') }}">Área do profissional</a>
         </div>
 
@@ -111,8 +114,7 @@
       </div>
 
       <div class="container footer-bottom">
-        <span>© <span id="year">2026</span> NeuroLearn Analytics · Projeto académico experimental</span>
-        <span>Não é dispositivo médico · Sem diagnóstico automático</span>
+        <span>© <span id="year">2026</span> NeuroLearn Analytics · Projeto Pessoal</span>
       </div>
     </footer>
 

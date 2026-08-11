@@ -232,7 +232,8 @@ def test_landing_200_and_positioning(client):
     r = client.get("/")
     assert r.status_code == 200
     assert "Neuropsicopedagogia".encode("utf-8") in r.data
-    assert "Feito para a sua prática".encode("utf-8") in r.data
+    assert "Feito para a prática profissional".encode("utf-8") in r.data
+    assert "Explorar demonstração".encode("utf-8") in r.data
     assert b"profissionais de sa" not in r.data.lower()
 
 
