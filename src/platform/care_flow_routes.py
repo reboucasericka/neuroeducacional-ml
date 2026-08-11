@@ -42,6 +42,15 @@ from src.platform.models import (
     SessionObservation,
     utcnow,
 )
+from src.platform.pagination_utils import paginate_query
+from src.platform.record_nav import patient_new_record_actions, patient_record_tabs
+
+SEX_CHOICES = {
+    "feminino": "Feminino",
+    "masculino": "Masculino",
+    "outro": "Outro",
+    "nao_informado": "Não informado",
+}
 
 care_bp = Blueprint("care", __name__, url_prefix="/panel")
 
@@ -251,19 +260,31 @@ def plans_edit(patient_id: int, plan_id: int):
 @login_required
 def sessions_list(patient_id: int):
     patient = _owned_patient_or_404(patient_id)
-    sessions = (
+    page_obj = paginate_query(
         ProfessionalSession.query.filter_by(
             patient_id=patient.id, professional_id=current_user.id
+        ).order_by(
+            ProfessionalSession.session_date.desc(), ProfessionalSession.id.desc()
         )
-        .order_by(ProfessionalSession.session_date.desc(), ProfessionalSession.id.desc())
-        .all()
     )
     return render_template(
         "panel/sessions_list.html",
         patient=patient,
-        sessions=sessions,
+        sessions=page_obj.items,
+        page_obj=page_obj,
         session_types=dict(SESSION_TYPES),
         session_statuses=dict(SESSION_STATUSES),
+        sex_choices=SEX_CHOICES,
+        record_tabs=patient_record_tabs(patient.id, active="sessions"),
+        new_record_actions=patient_new_record_actions(patient.id),
+        breadcrumbs=[
+            {"label": "Dashboard", "url": url_for("panel.dashboard")},
+            {
+                "label": patient.name,
+                "url": url_for("panel.patient_detail", patient_id=patient.id),
+            },
+            {"label": "Sessões", "url": None},
+        ],
     )
 
 

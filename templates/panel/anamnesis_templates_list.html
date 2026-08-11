@@ -3,49 +3,64 @@
 {% block page_title %}Modelos de anamnese{% endblock %}
 
 {% block panel_content %}
+{% from "partials/ui_macros.html" import empty_state, pagination, status_badge %}
+
 <div class="panel-toolbar">
   <p class="muted">Templates configuráveis. Conteúdo demonstrativo original — sem instrumentos proprietários.</p>
   <a class="btn btn--primary" href="{{ url_for('anamnesis.templates_new') }}">Nova anamnese</a>
 </div>
 
 <section class="panel-card">
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Categoria</th>
-          <th>População</th>
-          <th>Campos</th>
-          <th>Estado</th>
-          <th>Atualização</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in rows %}
-          {% set t = row.template %}
+  {% if rows %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td>{{ t.name }}</td>
-            <td>{{ t.category }}</td>
-            <td>{{ t.target_population or '—' }}</td>
-            <td>{{ row.field_count }}</td>
-            <td>{% if t.is_active %}<span class="pill">Ativo</span>{% else %}Inativo{% endif %}</td>
-            <td>{{ t.updated_at.strftime('%d/%m/%Y %H:%M') if t.updated_at else '—' }}</td>
-            <td class="table-actions">
-              <a href="{{ url_for('anamnesis.template_structure', template_id=t.id) }}">Estrutura</a>
-              <a href="{{ url_for('anamnesis.templates_edit', template_id=t.id) }}">Editar</a>
-              <form method="post" action="{{ url_for('anamnesis.templates_toggle', template_id=t.id) }}" style="display:inline">
-                {% include "partials/csrf_field.html" %}
-                <button class="linkish" type="submit">{% if t.is_active %}Desativar{% else %}Ativar{% endif %}</button>
-              </form>
-            </td>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th class="col-hide-sm">População</th>
+            <th>Campos</th>
+            <th>Estado</th>
+            <th class="col-hide-sm">Atualização</th>
+            <th></th>
           </tr>
-        {% else %}
-          <tr><td colspan="7">Nenhum modelo ainda.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            {% set t = row.template %}
+            <tr>
+              <td>{{ t.name }}</td>
+              <td>{{ t.category }}</td>
+              <td class="col-hide-sm">{{ t.target_population or '—' }}</td>
+              <td>{{ row.field_count }}</td>
+              <td>{{ status_badge('active' if t.is_active else 'inactive') }}</td>
+              <td class="col-hide-sm">{{ t.updated_at.strftime('%d/%m/%Y %H:%M') if t.updated_at else '—' }}</td>
+              <td class="table-actions">
+                <a href="{{ url_for('anamnesis.template_structure', template_id=t.id) }}">Estrutura</a>
+                <a href="{{ url_for('anamnesis.templates_edit', template_id=t.id) }}">Editar</a>
+                <form
+                  method="post"
+                  action="{{ url_for('anamnesis.templates_toggle', template_id=t.id) }}"
+                  style="display:inline"
+                  {% if t.is_active %}data-confirm="Desativar este modelo de anamnese?"{% endif %}
+                >
+                  {% include "partials/csrf_field.html" %}
+                  <button class="linkish" type="submit">{% if t.is_active %}Desativar{% else %}Ativar{% endif %}</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ pagination(page_obj, url_for('anamnesis.templates_list')) }}
+  {% else %}
+    {{ empty_state(
+      'Nenhum modelo ainda',
+      'Crie um modelo configurável para iniciar anamneses.',
+      url_for('anamnesis.templates_new'),
+      'Nova anamnese'
+    ) }}
+  {% endif %}
 </section>
 {% endblock %}

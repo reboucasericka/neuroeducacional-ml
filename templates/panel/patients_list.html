@@ -3,11 +3,37 @@
 {% block page_title %}{{ subject_label_plural }}{% endblock %}
 
 {% block panel_content %}
+{% from "partials/ui_macros.html" import empty_state, pagination, status_badge %}
+
 <div class="panel-toolbar">
-  <form class="panel-search" method="get">
+  <form class="panel-search panel-filters" method="get">
     <label class="sr-only" for="q">Pesquisar</label>
     <input id="q" type="search" name="q" value="{{ q }}" placeholder="Pesquisar por nome ou código" />
-    <button class="btn btn--ghost" type="submit">Pesquisar</button>
+    <label class="sr-only" for="status">Estado</label>
+    <select id="status" name="status">
+      <option value="">Estado</option>
+      {% for value, label in status_filters %}
+        <option value="{{ value }}" {% if status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <label class="sr-only" for="age">Faixa etária</label>
+    <select id="age" name="age">
+      <option value="">Faixa etária</option>
+      {% for value, label in age_bands %}
+        <option value="{{ value }}" {% if age_band == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    {% if education_options %}
+      <label class="sr-only" for="education">Escolaridade</label>
+      <select id="education" name="education">
+        <option value="">Escolaridade</option>
+        {% for ed in education_options %}
+          <option value="{{ ed }}" {% if education == ed %}selected{% endif %}>{{ ed }}</option>
+        {% endfor %}
+      </select>
+    {% endif %}
+    <input type="hidden" name="per_page" value="{{ page_obj.per_page }}" />
+    <button class="btn btn--ghost" type="submit">Filtrar</button>
   </form>
   <a class="btn btn--primary" href="{{ url_for('panel.patients_new') }}">Novo {{ subject_label|lower }}</a>
 </div>
@@ -21,7 +47,7 @@
             <th>Código</th>
             <th>Nome</th>
             <th>Idade</th>
-            <th>Sexo</th>
+            <th class="col-hide-sm">Sexo</th>
             <th>Estado</th>
             <th></th>
           </tr>
@@ -32,16 +58,22 @@
               <td>{{ p.internal_code }}</td>
               <td>{{ p.name }}{% if p.is_minor %} <span class="pill">Menor</span>{% endif %}</td>
               <td>{{ p.age_years }}</td>
-              <td>{{ p.sex }}</td>
-              <td>{{ p.status }}</td>
+              <td class="col-hide-sm">{{ p.sex }}</td>
+              <td>{{ status_badge(p.status) }}</td>
               <td><a href="{{ url_for('panel.patient_detail', patient_id=p.id) }}">Abrir</a></td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
+    {{ pagination(page_obj, url_for('panel.patients_list')) }}
   {% else %}
-    <p class="muted">Nenhum {{ subject_label|lower }} encontrado.</p>
+    {{ empty_state(
+      'Nenhum ' ~ subject_label|lower ~ ' encontrado',
+      'Ajuste a pesquisa ou crie um novo registo.',
+      url_for('panel.patients_new') if not q and not status and not age_band and not education else '',
+      'Novo ' ~ subject_label|lower if not q and not status and not age_band and not education else ''
+    ) }}
   {% endif %}
 </section>
 {% endblock %}

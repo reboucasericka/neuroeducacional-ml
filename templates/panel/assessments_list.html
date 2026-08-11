@@ -3,58 +3,69 @@
 {% block page_title %}Avaliações{% endblock %}
 
 {% block panel_content %}
+{% from "partials/ui_macros.html" import empty_state, pagination, status_badge %}
+
 <div class="panel-toolbar">
   <p class="muted">Resultados registados pelo profissional — sem scoring automático.</p>
   <form method="get" class="panel-search" style="max-width:280px">
-    <select name="status" onchange="this.form.submit()">
+    <select name="status" onchange="this.form.submit()" aria-label="Filtrar por estado">
       <option value="">Todos os estados</option>
       {% for key, label in status_labels.items() %}
         <option value="{{ key }}" {% if status == key %}selected{% endif %}>{{ label }}</option>
       {% endfor %}
     </select>
+    <input type="hidden" name="per_page" value="{{ page_obj.per_page }}" />
   </form>
 </div>
 
 <section class="panel-card">
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Data</th>
-          <th>{{ subject_label }}</th>
-          <th>Motivo</th>
-          <th>Instrumentos</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for row in rows %}
-          {% set a = row.assessment %}
+  {% if rows %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td>{{ a.assessment_date.strftime('%d/%m/%Y') }}</td>
-            <td>
-              {% if a.patient %}
-                <a href="{{ url_for('panel.patient_detail', patient_id=a.patient_id) }}">{{ a.patient.name }}</a>
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td>{{ a.reason or '—' }}</td>
-            <td>{{ row.instrument_count }}</td>
-            <td>{{ status_labels.get(a.status, a.status) }}</td>
-            <td>
-              <a href="{{ url_for('assessment.patient_assessment_view', patient_id=a.patient_id, assessment_id=a.id) }}">Ver</a>
-              {% if a.status == 'draft' %}
-                · <a href="{{ url_for('assessment.patient_assessment_edit', patient_id=a.patient_id, assessment_id=a.id) }}">Continuar</a>
-              {% endif %}
-            </td>
+            <th>Data</th>
+            <th>{{ subject_label }}</th>
+            <th>Motivo</th>
+            <th>Instrumentos</th>
+            <th>Estado</th>
+            <th></th>
           </tr>
-        {% else %}
-          <tr><td colspan="6">Sem avaliações. Crie a partir da ficha do {{ subject_label|lower }}.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            {% set a = row.assessment %}
+            <tr>
+              <td>{{ a.assessment_date.strftime('%d/%m/%Y') }}</td>
+              <td>
+                {% if a.patient %}
+                  <a href="{{ url_for('panel.patient_detail', patient_id=a.patient_id) }}">{{ a.patient.name }}</a>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td>{{ a.reason or '—' }}</td>
+              <td>{{ row.instrument_count }}</td>
+              <td>{{ status_badge(a.status, status_labels) }}</td>
+              <td>
+                <a href="{{ url_for('assessment.patient_assessment_view', patient_id=a.patient_id, assessment_id=a.id) }}">Ver</a>
+                {% if a.status == 'draft' %}
+                  · <a href="{{ url_for('assessment.patient_assessment_edit', patient_id=a.patient_id, assessment_id=a.id) }}">Continuar</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ pagination(page_obj, url_for('assessment.assessments_list')) }}
+  {% else %}
+    {{ empty_state(
+      'Sem avaliações',
+      'Crie a partir da ficha do ' ~ subject_label|lower ~ '.',
+      '',
+      ''
+    ) }}
+  {% endif %}
 </section>
 {% endblock %}

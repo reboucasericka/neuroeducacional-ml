@@ -3,6 +3,8 @@
 {% block page_title %}Catálogo de instrumentos{% endblock %}
 
 {% block panel_content %}
+{% from "partials/ui_macros.html" import empty_state, pagination, status_badge %}
+
 <div class="panel-toolbar">
   <p class="muted">Metadados de catálogo apenas — sem itens, normas ou scoring automático.</p>
   <a class="btn btn--primary" href="{{ url_for('assessment.instruments_new') }}">Novo instrumento</a>
@@ -10,7 +12,7 @@
 
 <form class="panel-card panel-toolbar" method="get">
   <div class="panel-search">
-    <input type="search" name="q" value="{{ q }}" placeholder="Pesquisar nome ou sigla" />
+    <input type="search" name="q" value="{{ q }}" placeholder="Pesquisar nome ou sigla" aria-label="Pesquisar" />
   </div>
   <label class="field" style="min-width:160px">
     <span class="sr-only">Categoria</span>
@@ -34,60 +36,76 @@
     <input type="checkbox" name="active" value="1" {% if active_only %}checked{% endif %} />
     <span>Só ativos</span>
   </label>
+  <input type="hidden" name="per_page" value="{{ page_obj.per_page }}" />
   <button class="btn btn--ghost" type="submit">Filtrar</button>
 </form>
 
 <section class="panel-card">
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>Sigla</th>
-          <th>Categoria</th>
-          <th>População</th>
-          <th>Idade</th>
-          <th>Objetivo</th>
-          <th>Uso / Licença</th>
-          <th>Estado</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for inst in instruments %}
+  {% if instruments %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
           <tr>
-            <td>{{ inst.name }}</td>
-            <td>{{ inst.short_name or '—' }}</td>
-            <td>{{ inst.category }}</td>
-            <td>{{ inst.target_population or '—' }}</td>
-            <td>
-              {% if inst.minimum_age or inst.maximum_age %}
-                {{ inst.minimum_age if inst.minimum_age is not none else '—' }}–{{ inst.maximum_age if inst.maximum_age is not none else '—' }}
-              {% else %}
-                —
-              {% endif %}
-            </td>
-            <td>{{ inst.purpose or '—' }}</td>
-            <td>
-              <span class="meta-badge" title="Uso profissional">Uso: {{ scope_status_label(scope_by_id.get(inst.id, 'verify')) }}</span>
-              <span class="meta-badge" title="Digitalização">Digital: {{ digital_use_label(inst.digital_use_status) }}</span>
-              <span class="meta-badge" title="Licença">Licença: {{ license_labels.get(inst.license_status, 'Desconhecida') }}</span>
-            </td>
-            <td>{% if inst.is_active %}<span class="pill">Ativo</span>{% else %}Inativo{% endif %}</td>
-            <td class="table-actions">
-              <a href="{{ url_for('assessment.instruments_view', instrument_id=inst.id) }}">Visualizar</a>
-              <a href="{{ url_for('assessment.instruments_edit', instrument_id=inst.id) }}">Editar</a>
-              <form method="post" action="{{ url_for('assessment.instruments_toggle', instrument_id=inst.id) }}" style="display:inline">
-                {% include "partials/csrf_field.html" %}
-                <button class="linkish" type="submit">{% if inst.is_active %}Desativar{% else %}Ativar{% endif %}</button>
-              </form>
-            </td>
+            <th>Nome</th>
+            <th>Sigla</th>
+            <th class="col-hide-sm">Categoria</th>
+            <th class="col-hide-sm">População</th>
+            <th class="col-hide-sm">Idade</th>
+            <th class="col-hide-sm">Objetivo</th>
+            <th>Uso / Licença</th>
+            <th>Estado</th>
+            <th></th>
           </tr>
-        {% else %}
-          <tr><td colspan="9">Nenhum instrumento no catálogo.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {% for inst in instruments %}
+            <tr>
+              <td>{{ inst.name }}</td>
+              <td>{{ inst.short_name or '—' }}</td>
+              <td class="col-hide-sm">{{ inst.category }}</td>
+              <td class="col-hide-sm">{{ inst.target_population or '—' }}</td>
+              <td class="col-hide-sm">
+                {% if inst.minimum_age or inst.maximum_age %}
+                  {{ inst.minimum_age if inst.minimum_age is not none else '—' }}–{{ inst.maximum_age if inst.maximum_age is not none else '—' }}
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+              <td class="col-hide-sm">{{ inst.purpose or '—' }}</td>
+              <td>
+                <span class="meta-badge" title="Uso profissional">Uso: {{ scope_status_label(scope_by_id.get(inst.id, 'verify')) }}</span>
+                <span class="meta-badge" title="Digitalização">Digital: {{ digital_use_label(inst.digital_use_status) }}</span>
+                <span class="meta-badge" title="Licença">Licença: {{ license_labels.get(inst.license_status, 'Desconhecida') }}</span>
+              </td>
+              <td>
+                {{ status_badge('active' if inst.is_active else 'inactive') }}
+              </td>
+              <td class="table-actions">
+                <a href="{{ url_for('assessment.instruments_view', instrument_id=inst.id) }}">Visualizar</a>
+                <a href="{{ url_for('assessment.instruments_edit', instrument_id=inst.id) }}">Editar</a>
+                <form
+                  method="post"
+                  action="{{ url_for('assessment.instruments_toggle', instrument_id=inst.id) }}"
+                  style="display:inline"
+                  {% if inst.is_active %}data-confirm="Desativar este instrumento?"{% endif %}
+                >
+                  {% include "partials/csrf_field.html" %}
+                  <button class="linkish" type="submit">{% if inst.is_active %}Desativar{% else %}Ativar{% endif %}</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ pagination(page_obj, url_for('assessment.instruments_list')) }}
+  {% else %}
+    {{ empty_state(
+      'Nenhum instrumento no catálogo',
+      'Ajuste os filtros ou adicione um novo instrumento.',
+      url_for('assessment.instruments_new') if not q and not category and not population and not active_only else '',
+      'Novo instrumento' if not q and not category and not population and not active_only else ''
+    ) }}
+  {% endif %}
 </section>
 {% endblock %}

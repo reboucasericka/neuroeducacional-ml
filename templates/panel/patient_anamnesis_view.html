@@ -3,19 +3,25 @@
 {% block page_title %}Anamnese concluída{% endblock %}
 
 {% block panel_content %}
+{% from "partials/ui_macros.html" import patient_header, record_tabs as render_record_tabs, status_badge %}
+
+{{ patient_header(patient, sex_choices=sex_choices, actions=new_record_actions) }}
+{% if record_tabs %}{{ render_record_tabs(record_tabs) }}{% endif %}
+
+<article class="print-report">
 <section class="panel-card readonly-header">
-  <p class="eyebrow">{{ status_labels.get(anamnesis.status, anamnesis.status) }} · {{ anamnesis.template.name }}</p>
+  <p class="eyebrow">{{ status_badge(anamnesis.status, status_labels) }} · {{ anamnesis.template.name }}</p>
   <h2>{{ patient.name }}</h2>
   <ul class="kv-list">
     <li><span>Código</span><strong>{{ patient.internal_code }}</strong></li>
     <li><span>Idade</span><strong>{{ patient.age_years }}</strong></li>
-    <li><span>Sexo</span><strong>{{ patient.sex }}</strong></li>
+    <li><span>Sexo</span><strong>{{ (sex_choices or {}).get(patient.sex, patient.sex) }}</strong></li>
     <li><span>Escolaridade</span><strong>{{ patient.education_level or '—' }}</strong></li>
     <li><span>Profissional</span><strong>{{ anamnesis.professional.name if anamnesis.professional else current_user.name }}</strong></li>
     <li><span>Início</span><strong>{{ anamnesis.started_at.strftime('%d/%m/%Y %H:%M') if anamnesis.started_at else '—' }}</strong></li>
     <li><span>Conclusão</span><strong>{{ anamnesis.completed_at.strftime('%d/%m/%Y %H:%M') if anamnesis.completed_at else '—' }}</strong></li>
   </ul>
-  <div class="form-actions" style="justify-content:flex-start;margin-top:1rem">
+  <div class="form-actions no-print" style="justify-content:flex-start;margin-top:1rem">
     <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='anamnesis') }}">Voltar ao histórico</a>
     {% if anamnesis.status == 'completed' %}
       <a class="btn btn--primary" href="{{ url_for('anamnesis.patient_anamnesis_edit', patient_id=patient.id, anamnesis_id=anamnesis.id) }}">Gerir / reabrir</a>
@@ -45,4 +51,5 @@
   <p>{{ anamnesis.notes }}</p>
 </section>
 {% endif %}
+</article>
 {% endblock %}

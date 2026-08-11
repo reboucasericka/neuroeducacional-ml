@@ -3,46 +3,32 @@
 {% block page_title %}Olá, {{ current_user.name.split(' ')[0] }}{% endblock %}
 
 {% block panel_content %}
-<section class="panel-stats">
-  <article class="stat-card">
-    <p>{{ subject_label_plural }}</p>
-    <strong>{{ stats.patients }}</strong>
-  </article>
-  <article class="stat-card">
-    <p>Sessões de hoje</p>
-    <strong>{{ stats.sessions_today }}</strong>
-  </article>
-  <article class="stat-card">
-    <p>Planos ativos</p>
-    <strong>{{ stats.active_plans }}</strong>
-  </article>
-  <article class="stat-card">
-    <p>Intervenções ativas</p>
-    <strong>{{ stats.active_interventions }}</strong>
-  </article>
-  <article class="stat-card">
-    <p>Encaminhamentos pendentes</p>
-    <strong>{{ stats.pending_referrals }}</strong>
-  </article>
-</section>
+{% from "partials/ui_macros.html" import empty_state, status_badge %}
 
-<section class="panel-stats">
-  <article class="stat-card">
-    <p>Avaliações em andamento</p>
-    <strong>{{ stats.assessments_draft }}</strong>
-  </article>
-  <article class="stat-card">
-    <p>Avaliações concluídas</p>
-    <strong>{{ stats.assessments_completed }}</strong>
-  </article>
-  <article class="stat-card">
-    <p>Anamneses em andamento</p>
-    <strong>{{ stats.anamneses_open }}</strong>
-  </article>
-  <article class="stat-card">
-    <p>Devolutivas em rascunho</p>
-    <strong>{{ stats.feedbacks_draft }}</strong>
-  </article>
+<section class="panel-card">
+  <h2>Hoje</h2>
+  <div class="panel-stats panel-stats--today">
+    <article class="stat-card">
+      <p>Sessões de hoje</p>
+      <strong>{{ stats.sessions_today }}</strong>
+    </article>
+    <article class="stat-card">
+      <p>Avaliações em andamento</p>
+      <strong>{{ stats.assessments_draft }}</strong>
+    </article>
+    <article class="stat-card">
+      <p>Anamneses em rascunho</p>
+      <strong>{{ stats.anamneses_open }}</strong>
+    </article>
+    <article class="stat-card">
+      <p>Planos ativos</p>
+      <strong>{{ stats.active_plans }}</strong>
+    </article>
+    <article class="stat-card">
+      <p>Revisões próximas</p>
+      <strong>{{ stats.upcoming_reviews }}</strong>
+    </article>
+  </div>
 </section>
 
 <div class="panel-two">
@@ -56,7 +42,10 @@
           <li>
             <a href="{{ url_for('care.sessions_view', patient_id=s.patient_id, session_id=s.id) }}">
               <strong>Hoje · {{ s.session_type }}</strong>
-              <span>{{ subject_label }} #{{ s.patient_id }}{% if s.start_time %} · {{ s.start_time }}{% endif %}</span>
+              <span>
+                {% if s.patient %}{{ s.patient.name }} · {{ s.patient.internal_code }}{% else %}{{ subject_label }}{% endif %}
+                {% if s.start_time %} · {{ s.start_time }}{% endif %}
+              </span>
             </a>
           </li>
         {% endfor %}
@@ -64,128 +53,22 @@
           <li>
             <a href="{{ url_for('care.sessions_view', patient_id=s.patient_id, session_id=s.id) }}">
               <strong>{{ s.session_date.strftime('%d/%m/%Y') }}</strong>
-              <span>{{ s.session_type }} · {{ subject_label|lower }} #{{ s.patient_id }}</span>
+              <span>
+                {{ s.session_type }} ·
+                {% if s.patient %}{{ s.patient.name }}{% else %}{{ subject_label|lower }}{% endif %}
+              </span>
             </a>
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p class="muted">Sem sessões agendadas.</p>
+      {{ empty_state('Sem sessões agendadas', 'As sessões planeadas para hoje e os próximos dias aparecem aqui.') }}
     {% endif %}
   </section>
 
   <section class="panel-card">
     <div class="panel-card__head">
-      <h2>Últimos {{ subject_label_plural|lower }}</h2>
-      <a href="{{ url_for('panel.patients_list') }}">Ver todos</a>
-    </div>
-    {% if recent_patients %}
-      <ul class="panel-list">
-        {% for p in recent_patients %}
-          <li>
-            <a href="{{ url_for('panel.patient_detail', patient_id=p.id) }}">
-              <strong>{{ p.name }}</strong>
-              <span>{{ p.internal_code }} · {{ p.age_years }} anos</span>
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">Ainda sem {{ subject_label_plural|lower }}.</p>
-    {% endif %}
-  </section>
-</div>
-
-<div class="panel-two">
-  <section class="panel-card">
-    <div class="panel-card__head">
-      <h2>Anamneses recentes</h2>
-      <a href="{{ url_for('anamnesis.templates_list') }}">Modelos</a>
-    </div>
-    {% if recent_anamneses %}
-      <ul class="panel-list">
-        {% for a in recent_anamneses %}
-          <li>
-            <a href="{{ url_for('anamnesis.patient_anamnesis_view', patient_id=a.patient_id, anamnesis_id=a.id) }}">
-              <strong>{{ a.template.name if a.template else 'Anamnese' }}</strong>
-              <span>{{ a.started_at.strftime('%d/%m/%Y') if a.started_at else '—' }} · {{ status_labels.get(a.status, a.status) }}</span>
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">Ainda sem anamneses.</p>
-    {% endif %}
-  </section>
-
-  <section class="panel-card">
-    <div class="panel-card__head">
-      <h2>Últimas avaliações</h2>
-      <a href="{{ url_for('assessment.assessments_list') }}">Ver todas</a>
-    </div>
-    {% if recent_assessments %}
-      <ul class="panel-list">
-        {% for a in recent_assessments %}
-          <li>
-            <a href="{{ url_for('assessment.patient_assessment_view', patient_id=a.patient_id, assessment_id=a.id) }}">
-              <strong>{{ a.reason or 'Avaliação' }}</strong>
-              <span>{{ a.assessment_date.strftime('%d/%m/%Y') }} · {{ status_labels.get(a.status, a.status) }}</span>
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">Sem avaliações registadas.</p>
-    {% endif %}
-  </section>
-</div>
-
-<div class="panel-two">
-  <section class="panel-card">
-    <div class="panel-card__head">
-      <h2>Últimos instrumentos utilizados</h2>
-      <a href="{{ url_for('assessment.instruments_list') }}">Catálogo</a>
-    </div>
-    {% if recent_instruments %}
-      <ul class="panel-list">
-        {% for name, short_name, uses in recent_instruments %}
-          <li>
-            <strong>{{ name or 'Instrumento' }}{% if short_name %} ({{ short_name }}){% endif %}</strong>
-            <span>{{ uses }} utilização{{ '' if uses == 1 else 'ões' }}</span>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">Ainda sem instrumentos aplicados.</p>
-    {% endif %}
-  </section>
-
-  <section class="panel-card">
-    <div class="panel-card__head">
-      <h2>Perfis atualizados recentemente</h2>
-      <a href="{{ url_for('cognitive.instrument_mappings') }}">Mappings</a>
-    </div>
-    {% if recent_profile_updates %}
-      <ul class="panel-list">
-        {% for indicator, patient, domain in recent_profile_updates %}
-          <li>
-            <a href="{{ url_for('cognitive.cognitive_profile', patient_id=patient.id) }}">
-              <strong>{{ patient.name }}</strong>
-              <span>{{ domain.name }} · {{ indicator.updated_at.strftime('%d/%m/%Y') if indicator.updated_at else '—' }}</span>
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">Ainda sem indicadores no perfil cognitivo.</p>
-    {% endif %}
-  </section>
-</div>
-
-<div class="panel-two">
-  <section class="panel-card">
-    <div class="panel-card__head">
-      <h2>Revisões de intervenção próximas</h2>
+      <h2>Revisões próximas</h2>
     </div>
     {% if upcoming_reviews %}
       <ul class="panel-list">
@@ -193,33 +76,82 @@
           <li>
             <a href="{{ url_for('intervention.interventions_edit', patient_id=p.patient_id, plan_id=p.id) }}">
               <strong>{{ p.title }}</strong>
-              <span>Revisão {{ p.review_date.strftime('%d/%m/%Y') if p.review_date else '—' }}</span>
+              <span>
+                {% if p.patient %}{{ p.patient.name }} · {% endif %}
+                Revisão {{ p.review_date.strftime('%d/%m/%Y') if p.review_date else '—' }}
+              </span>
             </a>
           </li>
         {% endfor %}
       </ul>
     {% else %}
-      <p class="muted">Sem revisões agendadas.</p>
-    {% endif %}
-  </section>
-  <section class="panel-card">
-    <div class="panel-card__head">
-      <h2>Evoluções recentes</h2>
-    </div>
-    {% if recent_progress %}
-      <ul class="panel-list">
-        {% for n in recent_progress %}
-          <li>
-            <a href="{{ url_for('intervention.evolution_view', patient_id=n.patient_id) }}">
-              <strong>{{ n.progress_status }}</strong>
-              <span>{{ n.recorded_at.strftime('%d/%m/%Y') if n.recorded_at else '—' }} · {{ (n.summary or '')[:80] }}</span>
-            </a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="muted">Ainda sem registos de evolução.</p>
+      {{ empty_state('Sem revisões agendadas', 'As revisões de intervenção próximas aparecerão aqui.') }}
     {% endif %}
   </section>
 </div>
+
+<section class="panel-card">
+  <div class="panel-card__head">
+    <h2>Atividade recente</h2>
+  </div>
+  <div class="panel-two">
+    <div>
+      <h3>Últimos {{ subject_label_plural|lower }}</h3>
+      {% if recent_patients %}
+        <ul class="panel-list">
+          {% for p in recent_patients %}
+            <li>
+              <a href="{{ url_for('panel.patient_detail', patient_id=p.id) }}">
+                <strong>{{ p.name }}</strong>
+                <span>{{ p.internal_code }} · {{ p.age_years }} anos</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">Ainda sem {{ subject_label_plural|lower }}.</p>
+      {% endif %}
+    </div>
+    <div>
+      <h3>Avaliações e anamneses</h3>
+      <ul class="panel-list">
+        {% for a in recent_assessments[:3] %}
+          <li>
+            <a href="{{ url_for('assessment.patient_assessment_view', patient_id=a.patient_id, assessment_id=a.id) }}">
+              <strong>{{ a.reason or 'Avaliação' }}</strong>
+              <span>
+                {% if a.patient %}{{ a.patient.name }} · {% endif %}
+                {{ a.assessment_date.strftime('%d/%m/%Y') }} · {{ status_badge(a.status) }}
+              </span>
+            </a>
+          </li>
+        {% endfor %}
+        {% for a in recent_anamneses[:3] %}
+          <li>
+            <a href="{{ url_for('anamnesis.patient_anamnesis_view', patient_id=a.patient_id, anamnesis_id=a.id) }}">
+              <strong>{{ a.template.name if a.template else 'Anamnese' }}</strong>
+              <span>
+                {% if a.patient %}{{ a.patient.name }} · {% endif %}
+                {{ a.started_at.strftime('%d/%m/%Y') if a.started_at else '—' }} · {{ status_badge(a.status) }}
+              </span>
+            </a>
+          </li>
+        {% endfor %}
+        {% if not recent_assessments and not recent_anamneses %}
+          <li><span class="muted">Sem atividade recente.</span></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</section>
+
+<details class="panel-card secondary-totals">
+  <summary>Totais gerais</summary>
+  <div class="panel-stats">
+    <article class="stat-card"><p>{{ subject_label_plural }}</p><strong>{{ stats.patients }}</strong></article>
+    <article class="stat-card"><p>Intervenções ativas</p><strong>{{ stats.active_interventions }}</strong></article>
+    <article class="stat-card"><p>Encaminhamentos pendentes</p><strong>{{ stats.pending_referrals }}</strong></article>
+    <article class="stat-card"><p>Devolutivas em rascunho</p><strong>{{ stats.feedbacks_draft }}</strong></article>
+  </div>
+</details>
 {% endblock %}

@@ -53,13 +53,25 @@ def create_app(*, testing: bool = False) -> Flask:
     login_manager.init_app(app)
     csrf.init_app(app)
 
+    from src.platform.pagination_utils import pagination_query_string
+    from src.platform.ui_status import status_label, status_modifier
+
+    app.jinja_env.globals["status_label"] = status_label
+    app.jinja_env.globals["status_modifier"] = status_modifier
+    app.jinja_env.globals["pagination_qs"] = pagination_query_string
+
     @login_manager.user_loader
     def load_user(user_id: str):
         return db.session.get(Professional, int(user_id))
 
     @app.context_processor
     def inject_terminology():
+        from flask import request
         from flask_login import current_user
+
+        from src.platform.pagination_utils import pagination_query_string
+        from src.platform.record_nav import sidebar_active_key
+        from src.platform.ui_status import status_label, status_modifier
 
         pro = current_user if getattr(current_user, "is_authenticated", False) else None
         return {
@@ -81,6 +93,11 @@ def create_app(*, testing: bool = False) -> Flask:
             ],
             "scope_status_label": scope_status_label,
             "digital_use_label": digital_use_label,
+            "status_label": status_label,
+            "status_modifier": status_modifier,
+            "sidebar_active": sidebar_active_key(request.endpoint),
+            "breadcrumbs": [],
+            "pagination_qs": pagination_query_string,
         }
 
     @app.before_request
@@ -148,6 +165,18 @@ def create_app(*, testing: bool = False) -> Flask:
             ),
             400,
         )
+
+    @app.errorhandler(403)
+    def handle_forbidden(error):
+        return render_template("errors/403.html"), 403
+
+    @app.errorhandler(404)
+    def handle_not_found(error):
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def handle_server_error(error):
+        return render_template("errors/500.html"), 500
 
     # Flask-WTF CSRFError (quando disponível)
     try:

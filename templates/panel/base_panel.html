@@ -13,12 +13,13 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/panel.css') }}" />
+    {% from "partials/ui_macros.html" import flash_messages %}
   </head>
   <body class="panel-body">
     <a class="skip-link" href="#panel-content">Saltar para o conteúdo</a>
 
     <div class="panel-shell">
-      <aside class="panel-sidebar" aria-label="Navegação do painel">
+      <aside class="panel-sidebar no-print" aria-label="Navegação do painel">
         <a class="brand panel-brand" href="{{ url_for('panel.dashboard') }}">
           <span class="brand__mark" aria-hidden="true"></span>
           <span class="brand__text">
@@ -27,16 +28,16 @@
           </span>
         </a>
 
+        {% set nav = sidebar_active %}
         <nav class="panel-nav">
-          <a href="{{ url_for('panel.dashboard') }}" class="{% if request.endpoint == 'panel.dashboard' %}is-active{% endif %}">Dashboard</a>
-          <a href="{{ url_for('panel.patients_list') }}" class="{% if 'patient' in (request.endpoint or '') %}is-active{% endif %}">{{ subject_label_plural }} / Prontuário</a>
-          <a href="{{ url_for('anamnesis.templates_list') }}" class="{% if 'anamnesis' in (request.endpoint or '') %}is-active{% endif %}">Anamneses</a>
-          <a href="{{ url_for('assessment.instruments_list') }}" class="{% if 'instrument' in (request.endpoint or '') %}is-active{% endif %}">Instrumentos</a>
-          <a href="{{ url_for('assessment.assessments_list') }}" class="{% if request.endpoint == 'assessment.assessments_list' or 'patient_assessment' in (request.endpoint or '') %}is-active{% endif %}">Avaliações</a>
-          <a href="{{ url_for('cognitive.instrument_mappings') }}" class="{% if 'cognitive' in (request.endpoint or '') %}is-active{% endif %}">Perfil / Mappings</a>
-          <a href="{{ url_for('panel.reports_placeholder') }}">Relatórios</a>
-          <a href="{{ url_for('panel.profile') }}">Perfil</a>
-          <a href="{{ url_for('panel.settings_placeholder') }}">Configurações</a>
+          <a href="{{ url_for('panel.dashboard') }}" class="{% if nav == 'dashboard' %}is-active{% endif %}" {% if nav == 'dashboard' %}aria-current="page"{% endif %}>Dashboard</a>
+          <a href="{{ url_for('panel.patients_list') }}" class="{% if nav == 'patients' %}is-active{% endif %}" {% if nav == 'patients' %}aria-current="page"{% endif %}>{{ subject_label_plural }}</a>
+          <a href="{{ url_for('anamnesis.templates_list') }}" class="{% if nav == 'anamneses' %}is-active{% endif %}" {% if nav == 'anamneses' %}aria-current="page"{% endif %}>Anamneses</a>
+          <a href="{{ url_for('assessment.assessments_list') }}" class="{% if nav == 'assessments' %}is-active{% endif %}" {% if nav == 'assessments' %}aria-current="page"{% endif %}>Avaliações</a>
+          <a href="{{ url_for('assessment.instruments_list') }}" class="{% if nav == 'instruments' %}is-active{% endif %}" {% if nav == 'instruments' %}aria-current="page"{% endif %}>Instrumentos</a>
+          <a href="{{ url_for('panel.reports_placeholder') }}" class="{% if nav == 'reports' %}is-active{% endif %}" {% if nav == 'reports' %}aria-current="page"{% endif %}>Relatórios</a>
+          <a href="{{ url_for('panel.profile') }}" class="{% if nav == 'profile' %}is-active{% endif %}" {% if nav == 'profile' %}aria-current="page"{% endif %}>Perfil</a>
+          <a href="{{ url_for('panel.settings_placeholder') }}" class="{% if nav == 'settings' %}is-active{% endif %}" {% if nav == 'settings' %}aria-current="page"{% endif %}>Configurações</a>
         </nav>
 
         <div class="panel-sidebar__foot">
@@ -50,7 +51,7 @@
       </aside>
 
       <div class="panel-main">
-        <header class="panel-topbar">
+        <header class="panel-topbar no-print">
           <div>
             <p class="eyebrow">Área profissional</p>
             <h1 class="panel-topbar__title">{% block page_title %}Painel{% endblock %}</h1>
@@ -61,14 +62,13 @@
           </div>
         </header>
 
+        {% if breadcrumbs %}
+          {% from "partials/ui_macros.html" import breadcrumbs as crumbs %}
+          {{ crumbs(breadcrumbs) }}
+        {% endif %}
+
         {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <ul class="flash-list panel-flash">
-              {% for category, message in messages %}
-                <li class="flash flash--{{ category }}">{{ message }}</li>
-              {% endfor %}
-            </ul>
-          {% endif %}
+          {{ flash_messages(messages) }}
         {% endwith %}
 
         <main id="panel-content" class="panel-content">
@@ -76,5 +76,17 @@
         </main>
       </div>
     </div>
+
+    <dialog class="confirm-dialog no-print" id="global-confirm-dialog" aria-labelledby="global-confirm-title">
+      <form method="dialog" class="confirm-dialog__inner">
+        <h2 id="global-confirm-title">Confirmar ação</h2>
+        <p data-confirm-message>Tem a certeza?</p>
+        <div class="form-actions">
+          <button class="btn btn--ghost" value="cancel" type="submit">Cancelar</button>
+          <button class="btn btn--primary" value="confirm" type="submit">Confirmar</button>
+        </div>
+      </form>
+    </dialog>
+    <script src="{{ url_for('static', filename='js/panel.js') }}" defer></script>
   </body>
 </html>

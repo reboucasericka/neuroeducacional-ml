@@ -3,39 +3,45 @@
 {% block page_title %}Sessões{% endblock %}
 
 {% block panel_content %}
-<section class="patient-context panel-card">
-  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
-    <div>
-      <p class="eyebrow">{{ patient.internal_code }}</p>
-      <h2>{{ patient.name }}</h2>
-    </div>
-    <div class="table-actions">
-      <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id) }}">Ficha</a>
-      <a class="btn btn--primary" href="{{ url_for('care.sessions_new', patient_id=patient.id) }}">+ Nova sessão</a>
-    </div>
-  </div>
-</section>
+{% from "partials/ui_macros.html" import patient_header, record_tabs as render_record_tabs, empty_state, pagination, status_badge %}
+
+{{ patient_header(patient, sex_choices=sex_choices, actions=new_record_actions) }}
+{% if record_tabs %}{{ render_record_tabs(record_tabs) }}{% endif %}
+
+<div class="panel-toolbar">
+  <p class="muted">Registo de sessões do profissional — sem geração automática.</p>
+  <a class="btn btn--primary" href="{{ url_for('care.sessions_new', patient_id=patient.id) }}">+ Nova sessão</a>
+</div>
+
 <section class="panel-card">
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead><tr><th>Data</th><th>Tipo</th><th>Estado</th><th>Objetivo</th><th></th></tr></thead>
-      <tbody>
-        {% for s in sessions %}
-          <tr>
-            <td>{{ s.session_date.strftime('%d/%m/%Y') }}</td>
-            <td>{{ session_types.get(s.session_type, s.session_type) }}</td>
-            <td>{{ session_statuses.get(s.status, s.status) }}</td>
-            <td>{{ (s.objective or '—')[:80] }}</td>
-            <td>
-              <a href="{{ url_for('care.sessions_view', patient_id=patient.id, session_id=s.id) }}">Ver</a>
-              · <a href="{{ url_for('care.sessions_edit', patient_id=patient.id, session_id=s.id) }}">Editar</a>
-            </td>
-          </tr>
-        {% else %}
-          <tr><td colspan="5">Sem sessões registadas.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  {% if sessions %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Data</th><th>Tipo</th><th>Estado</th><th>Objetivo</th><th></th></tr></thead>
+        <tbody>
+          {% for s in sessions %}
+            <tr>
+              <td>{{ s.session_date.strftime('%d/%m/%Y') }}</td>
+              <td>{{ session_types.get(s.session_type, s.session_type) }}</td>
+              <td>{{ status_badge(s.status, session_statuses) }}</td>
+              <td>{{ (s.objective or '—')[:80] }}</td>
+              <td>
+                <a href="{{ url_for('care.sessions_view', patient_id=patient.id, session_id=s.id) }}">Ver</a>
+                · <a href="{{ url_for('care.sessions_edit', patient_id=patient.id, session_id=s.id) }}">Editar</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {{ pagination(page_obj, url_for('care.sessions_list', patient_id=patient.id)) }}
+  {% else %}
+    {{ empty_state(
+      'Sem sessões registadas',
+      'Registe a primeira sessão deste prontuário.',
+      url_for('care.sessions_new', patient_id=patient.id),
+      'Nova sessão'
+    ) }}
+  {% endif %}
 </section>
 {% endblock %}

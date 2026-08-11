@@ -1,0 +1,24 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Configurações — NeuroLearn{% endblock %}
+{% block page_title %}Configurações{% endblock %}
+
+{% block panel_content %}
+<section class="panel-card">
+  <h2>Preferências e configuração técnica</h2>
+  <p class="muted">Definições do profissional e mapeamentos técnicos do catálogo.</p>
+  <ul class="panel-list">
+    <li>
+      <a href="{{ url_for('panel.profile') }}">
+        <strong>Perfil profissional</strong>
+        <span>Área de atuação, contactos e terminologia (Paciente / Aprendente / Avaliando).</span>
+      </a>
+    </li>
+    <li>
+      <a href="{{ url_for('cognitive.instrument_mappings') }}">
+        <strong>Mapeamento de instrumentos</strong>
+        <span>Associação técnica instrumento → domínio / habilidade cognitiva.</span>
+      </a>
+    </li>
+  </ul>
+</section>
+{% endblock %}

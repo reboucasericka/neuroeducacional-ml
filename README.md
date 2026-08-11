@@ -84,7 +84,64 @@ Uma aplicação Flask com:
 - anamneses dinâmicas e, a seguir, **catálogo de instrumentos**;
 - camada de Data Science sintético preservada e separada.
 
-## 5. Funcionalidades (estado atual)
+## 5. Estado atual
+
+### IMPLEMENTADO
+
+- Landing pública + login/logout (CSRF, password hash)
+- Onboarding leve de área de atuação e terminologia dinâmica (Paciente / Aprendente / Avaliando)
+- Dashboard acionável (hoje: sessões, rascunhos, planos, revisões)
+- **Prontuário longitudinal** como centro da experiência (ficha do aprendente/paciente)
+- Pesquisa, filtros e paginação server-side nas listas principais
+- Anamneses configuráveis (incluindo Neuroeducacional V2 com navegação por secções)
+- Catálogo de instrumentos (metadados + escopo profissional + licença/digitalização)
+- Avaliações com resultados manuais e histórico
+- Perfil Cognitivo longitudinal (sem scoring clínico automático)
+- Plano de avaliação, sessões, observações
+- Encaminhamentos + contactos escolares
+- Documentos/consentimentos demonstrativos
+- Devolutiva (texto do profissional + painel de evidências)
+- Plano de intervenção, objetivos, estratégias, revisões
+- Evolução qualitativa (ProgressNote)
+- Timeline unificada do prontuário com filtros
+- Breadcrumbs, badges de estado, empty states, confirmações seletivas
+- Páginas 403 / 404 / 500 e CSS de impressão
+- Seed demonstrativo fictício
+- Pipeline ML sintético + EDA (separado; sem PII)
+
+### EM DESENVOLVIMENTO
+
+- Relatórios profissionais avançados (placeholder)
+- Preferências/segurança alargadas em Configurações
+
+### PLANEADO
+
+- PDF certificado / assinatura digital
+- Agenda completa
+- Exportações analíticas pseudonimizadas
+- Apoio analítico adicional (sempre sem diagnóstico automático)
+
+### Experiência do prontuário
+
+A ficha do paciente/aprendente é o hub: header consistente, ação **+ Novo registo**, tabs responsivas (dropdown no mobile) e **Visão Geral** sintética com cartões clicáveis.
+
+A **Timeline** junta anamneses, planos, sessões, avaliações, perfil, devolutivas, intervenção, evolução, encaminhamentos e escola — com filtros por tipo e período e link para o registo original.
+
+A anamnese V2 permanece **configurável** (template/campos dinâmicos): navegação por secções reais, progresso de preenchimento (não é score), guardar rascunho sticky e resumo de erros acessível.
+
+### Screenshots (sugeridos)
+
+Quando a UI estiver estável, preferir capturas reais de:
+
+1. Dashboard  
+2. Ficha (Visão Geral)  
+3. Anamnese V2 (secções)  
+4. Perfil Cognitivo  
+5. Intervenção / Evolução  
+
+Não incluir imagens fictícias neste repositório.
+
+## 5b. Funcionalidades (resumo legado)
 
 - Landing reposicionada para Neuropsicopedagogia / Psicopedagogia (BR)
 - Login / logout com password hash + onboarding leve de área de atuação
@@ -135,7 +192,7 @@ Anamnese
 A plataforma representa um **percurso longitudinal**, não apenas testes isolados.  
 O profissional decide hipóteses, instrumentos, observações e encaminhamentos — sem automatismos clínicos.
 
-Próximo passo de produto: **Devolutiva / Intervenção** (ainda placeholders).
+Roadmap próximo (produto): relatórios avançados e refinamentos de UX — sem novos módulos clínicos nesta fase.
 
 ## 8. Domínios cognitivos (Versão 1)
 

@@ -3,91 +3,190 @@
 {% block page_title %}Preencher: {{ anamnesis.template.name }}{% endblock %}
 
 {% block panel_content %}
-<section class="patient-context panel-card">
-  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
-    <div>
-      <p class="eyebrow">{{ patient.internal_code }} · {{ status_labels.get(anamnesis.status, anamnesis.status) }}</p>
-      <h2>{{ patient.name }}</h2>
-      <p class="muted">
-        {{ patient.age_years }} anos · Nascimento: {{ patient.birth_date.strftime('%d/%m/%Y') }}
-        · Sexo: {{ patient.sex }}
-        {% if patient.education_level %} · Escolaridade: {{ patient.education_level }}{% endif %}
-      </p>
-      <p class="muted">Dados de identificação vêm da ficha do paciente (não duplicados nas respostas).</p>
-    </div>
-    <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='anamnesis') }}">Histórico</a>
-  </div>
-</section>
+{% from "partials/ui_macros.html" import patient_header, record_tabs as render_record_tabs, status_badge %}
+
+{{ patient_header(patient, sex_choices=sex_choices, actions=new_record_actions) }}
+{% if record_tabs %}{{ render_record_tabs(record_tabs) }}{% endif %}
+
+{% if errors %}
+  <section class="panel-card error-summary" role="alert" aria-labelledby="anamnesis-error-summary-title">
+    <h2 id="anamnesis-error-summary-title">Campos obrigatórios por preencher</h2>
+    <p class="muted">Revise {{ errors|length }} campo{{ 's' if errors|length != 1 else '' }} antes de concluir.</p>
+    <ul>
+      {% for section, section_fields in grouped.items() %}
+        {% set section_idx = loop.index %}
+        {% for field in section_fields %}
+          {% if errors.get(field.id) %}
+            <li>
+              <a href="#field_{{ field.id }}">{{ field.label }}</a>
+              <span class="muted"> · <a href="#anamnesis-section-{{ section_idx }}">{{ section }}</a></span>
+            </li>
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+    </ul>
+  </section>
+{% endif %}
 
 {% if anamnesis.status == 'completed' %}
   <section class="panel-card">
-    <p>Esta anamnese está concluída. Para editar, reabra explicitamente como rascunho.</p>
-    <form method="post">
+    <p>
+      Esta anamnese está {{ status_badge(anamnesis.status, status_labels) }}.
+      Para editar, reabra explicitamente como rascunho.
+    </p>
+    <form method="post" data-confirm="Reabrir esta anamnese como rascunho?">
       {% include "partials/csrf_field.html" %}
       <input type="hidden" name="action" value="reopen" />
       <button class="btn btn--primary" type="submit">Reabrir como rascunho</button>
     </form>
   </section>
 {% else %}
-<form method="post" class="anamnesis-form">
-  {% include "partials/csrf_field.html" %}
-  {% for section, section_fields in grouped.items() %}
-    <section class="panel-card">
-      <h3>{{ section }}</h3>
-      {% for field in section_fields %}
-        {% set key = 'field_' ~ field.id %}
-        {% set current = values.get(field.id) %}
-        <div class="field {% if errors.get(field.id) %}field--error{% endif %}">
-          <span>{{ field.label }}{% if field.is_required %} *{% endif %}</span>
-          {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
-
-          {% if field.field_type == 'textarea' %}
-            <textarea name="{{ key }}" rows="3" placeholder="{{ field.placeholder or '' }}">{{ current or '' }}</textarea>
-          {% elif field.field_type == 'number' %}
-            <input type="number" name="{{ key }}" value="{{ current or '' }}" placeholder="{{ field.placeholder or '' }}" />
-          {% elif field.field_type == 'date' %}
-            <input type="date" name="{{ key }}" value="{{ current or '' }}" />
-          {% elif field.field_type == 'select' %}
-            <select name="{{ key }}">
-              <option value="">—</option>
-              {% for opt in parse_options(field.options_json) %}
-                <option value="{{ opt }}" {% if current == opt %}selected{% endif %}>{{ opt }}</option>
-              {% endfor %}
-            </select>
-          {% elif field.field_type == 'radio' %}
-            <div class="choice-row">
-              {% for opt in parse_options(field.options_json) %}
-                <label><input type="radio" name="{{ key }}" value="{{ opt }}" {% if current == opt %}checked{% endif %} /> {{ opt }}</label>
-              {% endfor %}
-            </div>
-          {% elif field.field_type == 'checkbox' %}
-            <div class="choice-row">
-              {% for opt in parse_options(field.options_json) %}
-                <label><input type="checkbox" name="{{ key }}" value="{{ opt }}" {% if current and opt in current %}checked{% endif %} /> {{ opt }}</label>
-              {% endfor %}
-            </div>
-          {% elif field.field_type == 'boolean' %}
-            <label class="field--check"><input type="checkbox" name="{{ key }}" {% if current %}checked{% endif %} /> Sim</label>
-          {% else %}
-            <input type="text" name="{{ key }}" value="{{ current or '' }}" placeholder="{{ field.placeholder or '' }}" />
-          {% endif %}
-
-          {% if errors.get(field.id) %}<small class="error-text">{{ errors.get(field.id) }}</small>{% endif %}
-        </div>
+<div class="anamnesis-layout">
+  <aside class="anamnesis-nav panel-card no-print" aria-label="Secções da anamnese">
+    <p class="eyebrow">Navegação</p>
+    <nav data-anamnesis-nav class="anamnesis-nav__list">
+      {% for section, section_fields in grouped.items() %}
+        <a href="#anamnesis-section-{{ loop.index }}">{{ section }}</a>
       {% endfor %}
-    </section>
-  {% endfor %}
+      <a href="#anamnesis-notes">Notas</a>
+    </nav>
+    <label class="anamnesis-nav__mobile" for="anamnesis-section-select">Ir para secção</label>
+    <select id="anamnesis-section-select" data-anamnesis-select aria-label="Ir para secção">
+      {% for section, section_fields in grouped.items() %}
+        <option value="#anamnesis-section-{{ loop.index }}">{{ section }}</option>
+      {% endfor %}
+      <option value="#anamnesis-notes">Notas</option>
+    </select>
 
-  <section class="panel-card">
-    <label class="field">
-      <span>Notas da anamnese</span>
-      <textarea name="notes" rows="3">{{ anamnesis.notes or '' }}</textarea>
-    </label>
-    <div class="form-actions">
+    {% if fill_progress %}
+      <div class="anamnesis-progress" aria-label="Preenchimento do formulário">
+        <p class="anamnesis-progress__label">
+          Preenchimento: {{ fill_progress.filled }}/{{ fill_progress.total }}
+          ({{ fill_progress.percent }}%)
+        </p>
+        <div class="anamnesis-progress__bar" role="progressbar"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ fill_progress.percent }}"
+             aria-label="Preenchimento {{ fill_progress.percent }} por cento">
+          <span style="width: {{ fill_progress.percent }}%"></span>
+        </div>
+        <p class="muted anamnesis-progress__hint">Indicador de preenchimento — não é score clínico.</p>
+      </div>
+    {% endif %}
+  </aside>
+
+  <form method="post" class="anamnesis-form">
+    {% include "partials/csrf_field.html" %}
+    {% for section, section_fields in grouped.items() %}
+      <section class="panel-card anamnesis-section" id="anamnesis-section-{{ loop.index }}">
+        <h3>{{ section }}</h3>
+        {% for field in section_fields %}
+          {% set key = 'field_' ~ field.id %}
+          {% set current = values.get(field.id) %}
+          {% set err = errors.get(field.id) %}
+          {% set err_id = 'error_' ~ field.id %}
+          <div class="field {% if err %}field--error{% endif %}">
+            {% if field.field_type in ('radio', 'checkbox') %}
+              <fieldset id="{{ key }}">
+                <legend id="{{ key }}_legend">{{ field.label }}{% if field.is_required %} *{% endif %}</legend>
+                {% if field.help_text %}<small class="muted" id="{{ key }}_help">{{ field.help_text }}</small>{% endif %}
+                <div class="choice-row" role="group" aria-labelledby="{{ key }}_legend"{% if err %} aria-invalid="true" aria-describedby="{{ err_id }}"{% elif field.help_text %} aria-describedby="{{ key }}_help"{% endif %}>
+                  {% for opt in parse_options(field.options_json) %}
+                    {% set opt_id = key ~ '_' ~ loop.index %}
+                    <label for="{{ opt_id }}">
+                      <input
+                        id="{{ opt_id }}"
+                        type="{{ field.field_type }}"
+                        name="{{ key }}"
+                        value="{{ opt }}"
+                        {% if field.field_type == 'radio' and current == opt %}checked{% endif %}
+                        {% if field.field_type == 'checkbox' and current and opt in current %}checked{% endif %}
+                      />
+                      {{ opt }}
+                    </label>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            {% elif field.field_type == 'boolean' %}
+              <label class="field--check" for="{{ key }}">
+                <input
+                  id="{{ key }}"
+                  type="checkbox"
+                  name="{{ key }}"
+                  {% if current %}checked{% endif %}
+                  {% if err %}aria-invalid="true" aria-describedby="{{ err_id }}"{% endif %}
+                />
+                {{ field.label }}{% if field.is_required %} *{% endif %}
+              </label>
+              {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+            {% else %}
+              <label for="{{ key }}">{{ field.label }}{% if field.is_required %} *{% endif %}</label>
+              {% if field.help_text %}<small class="muted" id="{{ key }}_help">{{ field.help_text }}</small>{% endif %}
+              {% if field.field_type == 'textarea' %}
+                <textarea
+                  id="{{ key }}"
+                  name="{{ key }}"
+                  rows="3"
+                  placeholder="{{ field.placeholder or '' }}"
+                  {% if err %}aria-invalid="true" aria-describedby="{{ err_id }}"{% elif field.help_text %}aria-describedby="{{ key }}_help"{% endif %}
+                >{{ current or '' }}</textarea>
+              {% elif field.field_type == 'number' %}
+                <input
+                  id="{{ key }}"
+                  type="number"
+                  name="{{ key }}"
+                  value="{{ current or '' }}"
+                  placeholder="{{ field.placeholder or '' }}"
+                  {% if err %}aria-invalid="true" aria-describedby="{{ err_id }}"{% elif field.help_text %}aria-describedby="{{ key }}_help"{% endif %}
+                />
+              {% elif field.field_type == 'date' %}
+                <input
+                  id="{{ key }}"
+                  type="date"
+                  name="{{ key }}"
+                  value="{{ current or '' }}"
+                  {% if err %}aria-invalid="true" aria-describedby="{{ err_id }}"{% elif field.help_text %}aria-describedby="{{ key }}_help"{% endif %}
+                />
+              {% elif field.field_type == 'select' %}
+                <select
+                  id="{{ key }}"
+                  name="{{ key }}"
+                  {% if err %}aria-invalid="true" aria-describedby="{{ err_id }}"{% elif field.help_text %}aria-describedby="{{ key }}_help"{% endif %}
+                >
+                  <option value="">—</option>
+                  {% for opt in parse_options(field.options_json) %}
+                    <option value="{{ opt }}" {% if current == opt %}selected{% endif %}>{{ opt }}</option>
+                  {% endfor %}
+                </select>
+              {% else %}
+                <input
+                  id="{{ key }}"
+                  type="text"
+                  name="{{ key }}"
+                  value="{{ current or '' }}"
+                  placeholder="{{ field.placeholder or '' }}"
+                  {% if err %}aria-invalid="true" aria-describedby="{{ err_id }}"{% elif field.help_text %}aria-describedby="{{ key }}_help"{% endif %}
+                />
+              {% endif %}
+            {% endif %}
+
+            {% if err %}<small class="error-text" id="{{ err_id }}">{{ err }}</small>{% endif %}
+          </div>
+        {% endfor %}
+      </section>
+    {% endfor %}
+
+    <section class="panel-card" id="anamnesis-notes">
+      <label class="field" for="anamnesis_notes">
+        <span>Notas da anamnese</span>
+        <textarea id="anamnesis_notes" name="notes" rows="3">{{ anamnesis.notes or '' }}</textarea>
+      </label>
+    </section>
+
+    <div class="form-actions form-actions--sticky no-print">
       <button class="btn btn--ghost" type="submit" name="action" value="draft">Guardar rascunho</button>
-      <button class="btn btn--primary" type="submit" name="action" value="complete">Concluir anamnese</button>
+      <button class="btn btn--primary" type="submit" name="action" value="complete">Concluir</button>
     </div>
-  </section>
-</form>
+  </form>
+</div>
 {% endif %}
 {% endblock %}

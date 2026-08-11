@@ -1,0 +1,167 @@
+{# Biblioteca compacta de macros UI do painel #}
+{% macro breadcrumbs(items) -%}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol class="breadcrumbs__list">
+    {% for item in items %}
+      <li class="breadcrumbs__item{% if loop.last %} breadcrumbs__item--current{% endif %}{% if not loop.first and not loop.last %} breadcrumbs__item--mid{% endif %}">
+        {% if item.url and not loop.last %}
+          <a href="{{ item.url }}">{{ item.label }}</a>
+        {% else %}
+          <span aria-current="page">{{ item.label }}</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+</nav>
+{%- endmacro %}
+
+{% macro status_badge(value, labels=none) -%}
+{%- set label = (labels or {}).get(value, none) -%}
+{%- if label is none -%}
+  {%- set label = status_label(value) -%}
+{%- endif -%}
+<span class="status-badge {{ status_modifier(value) }}" title="{{ label }}">
+  <span class="status-badge__dot" aria-hidden="true"></span>
+  <span class="status-badge__text">{{ label }}</span>
+</span>
+{%- endmacro %}
+
+{% macro empty_state(title, description='', cta_url='', cta_label='') -%}
+<div class="empty-state">
+  <h3 class="empty-state__title">{{ title }}</h3>
+  {% if description %}<p class="empty-state__desc">{{ description }}</p>{% endif %}
+  {% if cta_url and cta_label %}
+    <p class="empty-state__cta"><a class="btn btn--primary" href="{{ cta_url }}">{{ cta_label }}</a></p>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro flash_messages(messages) -%}
+{% if messages %}
+  <ul class="flash-list panel-flash" role="status" aria-live="polite">
+    {% for category, message in messages %}
+      <li class="flash flash--{{ category }}" {% if category == 'error' %}role="alert" aria-live="assertive"{% endif %}>
+        {{ message }}
+      </li>
+    {% endfor %}
+  </ul>
+{% endif %}
+{%- endmacro %}
+
+{% macro pagination(page_obj, base_url) -%}
+{% if page_obj and page_obj.pages > 1 %}
+<nav class="pagination" aria-label="Paginação">
+  <p class="pagination__meta muted">
+    {{ page_obj.total }} registo{{ 's' if page_obj.total != 1 else '' }} · página {{ page_obj.page }} de {{ page_obj.pages }}
+  </p>
+  <div class="pagination__controls">
+    {% if page_obj.has_prev %}
+      <a class="btn btn--ghost" href="{{ base_url }}?{{ pagination_qs(page=page_obj.prev_num, per_page=page_obj.per_page) }}">Anterior</a>
+    {% else %}
+      <span class="btn btn--ghost is-disabled" aria-disabled="true">Anterior</span>
+    {% endif %}
+    {% if page_obj.has_next %}
+      <a class="btn btn--ghost" href="{{ base_url }}?{{ pagination_qs(page=page_obj.next_num, per_page=page_obj.per_page) }}">Seguinte</a>
+    {% else %}
+      <span class="btn btn--ghost is-disabled" aria-disabled="true">Seguinte</span>
+    {% endif %}
+  </div>
+  <form class="pagination__size" method="get" action="{{ base_url }}">
+    {% for key, value in request.args.items() %}
+      {% if key not in ('page', 'per_page') %}
+        <input type="hidden" name="{{ key }}" value="{{ value }}" />
+      {% endif %}
+    {% endfor %}
+    <input type="hidden" name="page" value="1" />
+    <label for="per_page">Por página</label>
+    <select id="per_page" name="per_page" onchange="this.form.submit()">
+      {% for size in (20, 50, 100) %}
+        <option value="{{ size }}" {% if page_obj.per_page == size %}selected{% endif %}>{{ size }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</nav>
+{% elif page_obj and page_obj.total %}
+  <p class="pagination__meta muted">{{ page_obj.total }} registo{{ 's' if page_obj.total != 1 else '' }}</p>
+{% endif %}
+{%- endmacro %}
+
+{% macro form_actions(primary_label='Guardar', secondary_url='', secondary_label='Cancelar', sticky=false) -%}
+<div class="form-actions{% if sticky %} form-actions--sticky{% endif %}">
+  {% if secondary_url %}
+    <a class="btn btn--ghost" href="{{ secondary_url }}">{{ secondary_label }}</a>
+  {% endif %}
+  <button class="btn btn--primary" type="submit">{{ primary_label }}</button>
+</div>
+{%- endmacro %}
+
+{% macro confirm_dialog(dialog_id, title, message, confirm_label='Confirmar') -%}
+<dialog class="confirm-dialog" id="{{ dialog_id }}" aria-labelledby="{{ dialog_id }}-title">
+  <form method="dialog" class="confirm-dialog__inner">
+    <h2 id="{{ dialog_id }}-title">{{ title }}</h2>
+    <p>{{ message }}</p>
+    <div class="form-actions">
+      <button class="btn btn--ghost" value="cancel" type="submit">Cancelar</button>
+      <button class="btn btn--primary" value="confirm" type="submit">{{ confirm_label }}</button>
+    </div>
+  </form>
+</dialog>
+{%- endmacro %}
+
+{% macro patient_header(patient, sex_choices=none, actions=none, show_new_record=true) -%}
+<section class="patient-header panel-card no-print">
+  <div class="patient-header__main">
+    <p class="eyebrow">{{ patient.internal_code }}{% if patient.notes and 'DEMONSTRAÇÃO' in patient.notes %} · DEMONSTRAÇÃO{% endif %}</p>
+    <h2 class="patient-header__name">{{ patient.name }}</h2>
+    <p class="muted patient-header__meta">
+      {{ patient.age_years }} anos
+      · {{ (sex_choices or {}).get(patient.sex, patient.sex) }}
+      {% if patient.education_level %} · {{ patient.education_level }}{% endif %}
+      · {{ status_badge(patient.status) }}
+    </p>
+  </div>
+  <div class="patient-header__actions">
+    {% if show_new_record and actions %}
+      <div class="dropdown" data-dropdown>
+        <button
+          type="button"
+          class="btn btn--primary"
+          aria-expanded="false"
+          aria-haspopup="menu"
+          data-dropdown-trigger
+        >
+          + Novo registo
+        </button>
+        <ul class="dropdown__menu" role="menu" hidden data-dropdown-menu>
+          {% for action in actions %}
+            <li role="none">
+              <a role="menuitem" href="{{ action.url }}">{{ action.label }}</a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+    <a class="btn btn--ghost" href="{{ url_for('panel.patients_list') }}">Lista</a>
+  </div>
+</section>
+{%- endmacro %}
+
+{% macro record_tabs(tabs) -%}
+<div class="record-nav no-print" data-record-nav>
+  <label class="record-nav__mobile sr-only" for="record-section-select">Secção do prontuário</label>
+  <select id="record-section-select" class="record-nav__select" data-record-nav-select aria-label="Secção do prontuário">
+    {% for tab in tabs %}
+      <option value="{{ tab.url }}" {% if tab.active %}selected{% endif %}>{{ tab.label }}</option>
+    {% endfor %}
+  </select>
+  <nav class="record-tabs" aria-label="Secções do prontuário">
+    {% for tab in tabs %}
+      <a
+        href="{{ tab.url }}"
+        class="{% if tab.active %}is-active{% endif %}"
+        {% if tab.active %}aria-current="page"{% endif %}
+      >{{ tab.label }}</a>
+    {% endfor %}
+  </nav>
+</div>
+{%- endmacro %}

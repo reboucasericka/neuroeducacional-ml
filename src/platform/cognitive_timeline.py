@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from src.platform.models import (
@@ -38,6 +38,8 @@ class TimelineEvent:
     detail: str
     url: str | None = None
     meta: dict[str, Any] | None = None
+    status: str | None = None
+    professional_name: str | None = None
 
 
 def build_patient_timeline(
@@ -45,12 +47,15 @@ def build_patient_timeline(
     professional_id: int,
     *,
     months: int | None = None,
+    kind_filter: str | None = None,
 ) -> list[TimelineEvent]:
     """Combina anamneses, avaliações, indicadores e histórico (eventos, não scores)."""
+    from src.platform.record_nav import timeline_kind_matches
+
     events: list[TimelineEvent] = []
     cutoff = None
     if months:
-        cutoff = datetime.utcnow() - timedelta(days=30 * months)
+        cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=30 * months)
 
     for a in PatientAnamnesis.query.filter_by(
         patient_id=patient.id, professional_id=professional_id
@@ -65,8 +70,10 @@ def build_patient_timeline(
                 when=when.replace(tzinfo=None) if when.tzinfo else when,
                 kind="anamnesis",
                 title=a.template.name if a.template else "Anamnese",
-                detail=f"Estado: {a.status}",
+                detail="Anamnese registada",
                 url=f"/panel/patients/{patient.id}/anamneses/{a.id}",
+                status=a.status,
+                professional_name=a.professional.name if a.professional else None,
             )
         )
 
@@ -89,6 +96,10 @@ def build_patient_timeline(
                 title=assessment.reason or "Avaliação",
                 detail=f"{len(instruments)} instrumento(s): {names}",
                 url=f"/panel/patients/{patient.id}/assessments/{assessment.id}",
+                status=assessment.status,
+                professional_name=(
+                    assessment.professional.name if assessment.professional else None
+                ),
             )
         )
 
@@ -276,6 +287,8 @@ def build_patient_timeline(
         )
 
     events.sort(key=lambda e: e.when, reverse=True)
+    if kind_filter:
+        events = [e for e in events if timeline_kind_matches(e.kind, kind_filter)]
     return events
 
 
@@ -294,7 +307,7 @@ def domain_cards_for_patient(
     )
     cutoff = None
     if months:
-        cutoff = datetime.utcnow() - timedelta(days=30 * months)
+        cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=30 * months)
 
     q = CognitiveIndicator.query.filter_by(
         patient_id=patient_id, professional_id=professional_id

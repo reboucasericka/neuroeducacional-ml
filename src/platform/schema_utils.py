@@ -18,6 +18,22 @@ def _add_column(table: str, column_sql: str) -> None:
     db.session.execute(text(f"ALTER TABLE {table} ADD COLUMN {column_sql}"))
 
 
+def _ensure_indexes(indexes: list[tuple[str, str, str]]) -> None:
+    """CREATE INDEX IF NOT EXISTS — seguro em SQLite, sem perda de dados.
+
+    Cada item: (index_name, table_name, column_name).
+    Útil porque SQLAlchemy index=True em modelos existentes não cria índices
+    retroativamente em bases já provisionadas.
+    """
+    for index_name, table_name, column_name in indexes:
+        db.session.execute(
+            text(
+                f"CREATE INDEX IF NOT EXISTS {index_name} "
+                f"ON {table_name} ({column_name})"
+            )
+        )
+
+
 def ensure_schema() -> None:
     """Cria tabelas e adiciona colunas novas sem apagar dados."""
     db.create_all()
@@ -263,3 +279,20 @@ def ensure_schema() -> None:
 
     # create_all já criou as tabelas novas; limpar cache
     inspector.clear_cache()
+
+    # Índices de listagem (CREATE INDEX IF NOT EXISTS; sem perda de dados).
+    _ensure_indexes(
+        [
+            ("ix_assessments_patient_id", "assessments", "patient_id"),
+            ("ix_assessments_professional_id", "assessments", "professional_id"),
+            ("ix_assessments_status", "assessments", "status"),
+            ("ix_assessments_assessment_date", "assessments", "assessment_date"),
+            ("ix_patient_anamneses_patient_id", "patient_anamneses", "patient_id"),
+            ("ix_patient_anamneses_professional_id", "patient_anamneses", "professional_id"),
+            ("ix_patient_anamneses_status", "patient_anamneses", "status"),
+            ("ix_patient_anamneses_started_at", "patient_anamneses", "started_at"),
+            ("ix_professional_sessions_status", "professional_sessions", "status"),
+            ("ix_professional_sessions_session_date", "professional_sessions", "session_date"),
+        ]
+    )
+    db.session.commit()

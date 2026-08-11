@@ -4,7 +4,11 @@
 
 {% block panel_content %}
 <p class="muted">Encaminhamentos decididos pelo profissional — sem geração automática.</p>
-<form class="panel-card form-grid" method="post">
+<p class="panel-context-link">
+  <a href="{{ url_for('care.school_contacts', patient_id=patient.id) }}">Contactos escolares</a>
+  <span class="muted"> — contexto escolar (sem nova tab)</span>
+</p>
+<form class="panel-card form-grid" method="post" id="novo">
   {% include "partials/csrf_field.html" %}
   <label class="field">
     <span>Especialidade *</span>

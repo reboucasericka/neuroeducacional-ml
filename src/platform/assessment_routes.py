@@ -6,7 +6,7 @@ from datetime import date, datetime
 
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 
 from src.platform.anamnesis_utils import slugify
 from src.platform.cognitive_indicators import (
@@ -32,6 +32,7 @@ from src.platform.models import (
     Patient,
     utcnow,
 )
+from src.platform.pagination_utils import paginate_query
 from src.platform.terminology import (
     COPYRIGHT_STATUSES,
     DIGITAL_USE_STATUSES,
@@ -214,18 +215,24 @@ def instruments_list():
     if active_only:
         query = query.filter(Instrument.is_active.is_(True))
 
-    instruments = query.order_by(Instrument.name.asc()).all()
+    page_obj = paginate_query(query.order_by(Instrument.name.asc()))
+    instruments = page_obj.items
     ptype = normalize_professional_type(current_user.professional_type)
-    scope_by_id = {}
-    for inst in instruments:
-        scope = InstrumentProfessionalScope.query.filter_by(
-            instrument_id=inst.id, professional_type=ptype
-        ).first()
-        scope_by_id[inst.id] = scope.status if scope else "verify"
+    scope_by_id: dict[int, str] = {}
+    if instruments:
+        ids = [inst.id for inst in instruments]
+        scopes = InstrumentProfessionalScope.query.filter(
+            InstrumentProfessionalScope.instrument_id.in_(ids),
+            InstrumentProfessionalScope.professional_type == ptype,
+        ).all()
+        scope_by_id = {s.instrument_id: s.status for s in scopes}
+        for inst in instruments:
+            scope_by_id.setdefault(inst.id, "verify")
 
     return render_template(
         "panel/instruments_list.html",
         instruments=instruments,
+        page_obj=page_obj,
         q=q,
         category=category,
         population=population,
@@ -235,6 +242,10 @@ def instruments_list():
         license_labels=LICENSE_LABELS,
         scope_by_id=scope_by_id,
         scope_status_label=scope_status_label,
+        breadcrumbs=[
+            {"label": "Dashboard", "url": url_for("panel.dashboard")},
+            {"label": "Instrumentos", "url": None},
+        ],
     )
 
 
@@ -351,20 +362,40 @@ def assessments_list():
     query = Assessment.query.filter_by(professional_id=current_user.id)
     if status:
         query = query.filter(Assessment.status == status)
-    assessments = query.order_by(Assessment.assessment_date.desc(), Assessment.id.desc()).all()
-    rows = []
-    for assessment in assessments:
-        rows.append(
-            {
-                "assessment": assessment,
-                "instrument_count": assessment.instruments.count(),
-            }
+    page_obj = paginate_query(
+        query.order_by(Assessment.assessment_date.desc(), Assessment.id.desc())
+    )
+    assessments = page_obj.items
+    counts: dict[int, int] = {}
+    if assessments:
+        ids = [a.id for a in assessments]
+        rows_count = (
+            db.session.query(
+                AssessmentInstrument.assessment_id,
+                func.count(AssessmentInstrument.id),
+            )
+            .filter(AssessmentInstrument.assessment_id.in_(ids))
+            .group_by(AssessmentInstrument.assessment_id)
+            .all()
         )
+        counts = {aid: int(cnt) for aid, cnt in rows_count}
+    rows = [
+        {
+            "assessment": assessment,
+            "instrument_count": counts.get(assessment.id, 0),
+        }
+        for assessment in assessments
+    ]
     return render_template(
         "panel/assessments_list.html",
         rows=rows,
+        page_obj=page_obj,
         status=status,
         status_labels=STATUS_LABELS,
+        breadcrumbs=[
+            {"label": "Dashboard", "url": url_for("panel.dashboard")},
+            {"label": "Avaliações", "url": None},
+        ],
     )
 
 

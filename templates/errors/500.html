@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Erro inesperado — NeuroLearn{% endblock %}
+{% block content %}
+<section class="auth-section">
+  <div class="container">
+    <div class="auth-card" style="max-width:36rem;margin:0 auto">
+      <p class="eyebrow">500</p>
+      <h1>Não foi possível concluir esta operação.</h1>
+      <p>Ocorreu um erro inesperado. Tente novamente dentro de momentos.</p>
+      <p>
+        {% if current_user.is_authenticated %}
+          <a class="btn btn--primary" href="{{ url_for('panel.dashboard') }}">Voltar ao painel</a>
+        {% else %}
+          <a class="btn btn--primary" href="{{ url_for('index') }}">Início</a>
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</section>
+{% endblock %}

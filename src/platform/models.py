@@ -214,16 +214,18 @@ class PatientAnamnesis(db.Model):
     __tablename__ = "patient_anamneses"
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey("patients.id"), nullable=False, index=True
+    )
     template_id = db.Column(
         db.Integer, db.ForeignKey("anamnesis_templates.id"), nullable=False
     )
     professional_id = db.Column(
-        db.Integer, db.ForeignKey("professionals.id"), nullable=False
+        db.Integer, db.ForeignKey("professionals.id"), nullable=False, index=True
     )
-    started_at = db.Column(db.DateTime, nullable=False, default=utcnow)
+    started_at = db.Column(db.DateTime, nullable=False, default=utcnow, index=True)
     completed_at = db.Column(db.DateTime, nullable=True)
-    status = db.Column(db.String(40), nullable=False, default="draft")
+    status = db.Column(db.String(40), nullable=False, default="draft", index=True)
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
@@ -327,15 +329,17 @@ class Assessment(db.Model):
     __tablename__ = "assessments"
 
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
-    professional_id = db.Column(
-        db.Integer, db.ForeignKey("professionals.id"), nullable=False
+    patient_id = db.Column(
+        db.Integer, db.ForeignKey("patients.id"), nullable=False, index=True
     )
-    assessment_date = db.Column(db.Date, nullable=False, default=date.today)
+    professional_id = db.Column(
+        db.Integer, db.ForeignKey("professionals.id"), nullable=False, index=True
+    )
+    assessment_date = db.Column(db.Date, nullable=False, default=date.today, index=True)
     reason = db.Column(db.String(255), nullable=True)
     # initial | follow_up | reevaluation
     assessment_type = db.Column(db.String(40), nullable=False, default="initial")
-    status = db.Column(db.String(40), nullable=False, default="draft")
+    status = db.Column(db.String(40), nullable=False, default="draft", index=True)
     general_notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=utcnow)
     updated_at = db.Column(db.DateTime, nullable=False, default=utcnow, onupdate=utcnow)
@@ -592,11 +596,11 @@ class ProfessionalSession(db.Model):
     intervention_plan_id = db.Column(
         db.Integer, db.ForeignKey("intervention_plans.id"), nullable=True, index=True
     )
-    session_date = db.Column(db.Date, nullable=False, default=date.today)
+    session_date = db.Column(db.Date, nullable=False, default=date.today, index=True)
     start_time = db.Column(db.String(10), nullable=True)
     end_time = db.Column(db.String(10), nullable=True)
     session_type = db.Column(db.String(40), nullable=False, default="assessment")
-    status = db.Column(db.String(40), nullable=False, default="planned")
+    status = db.Column(db.String(40), nullable=False, default="planned", index=True)
     objective = db.Column(db.Text, nullable=True)
     summary = db.Column(db.Text, nullable=True)
     professional_notes = db.Column(db.Text, nullable=True)

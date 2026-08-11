@@ -156,3 +156,47 @@ def group_fields_by_section(fields: list[AnamnesisField]) -> OrderedDict[str, li
     for field in sorted(fields, key=lambda f: (f.sort_order, f.id)):
         grouped.setdefault(field.section or "Geral", []).append(field)
     return grouped
+
+
+def _value_is_filled(field: AnamnesisField, raw: Any) -> bool:
+    # Aceita valor cru (DB) ou já desserializado (redisplay do formulário).
+    if field.field_type == "checkbox":
+        if isinstance(raw, list):
+            return bool(raw)
+        return bool(deserialize_response_value(field, raw if isinstance(raw, (str, type(None))) else None))
+    if field.field_type == "boolean":
+        if isinstance(raw, bool):
+            return True  # false conta como resposta explícita
+        return raw is not None and str(raw).strip() != ""
+    if raw is None:
+        return False
+    if isinstance(raw, str):
+        value = deserialize_response_value(field, raw)
+        if value is None:
+            return False
+        return str(value).strip() != ""
+    return str(raw).strip() != ""
+
+
+def anamnesis_fill_progress(
+    fields: list[AnamnesisField], values: dict[int, Any]
+) -> dict[str, Any]:
+    """Progresso de preenchimento (não é score clínico)."""
+    applicable = [f for f in fields if f.is_active]
+    total = len(applicable)
+    filled = 0
+    by_section: OrderedDict[str, dict[str, int]] = OrderedDict()
+    for field in applicable:
+        section = field.section or "Geral"
+        bucket = by_section.setdefault(section, {"total": 0, "filled": 0})
+        bucket["total"] += 1
+        if _value_is_filled(field, values.get(field.id)):
+            filled += 1
+            bucket["filled"] += 1
+    percent = int(round((filled / total) * 100)) if total else 0
+    return {
+        "filled": filled,
+        "total": total,
+        "percent": percent,
+        "by_section": by_section,
+    }

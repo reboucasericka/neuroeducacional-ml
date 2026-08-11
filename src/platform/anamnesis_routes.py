@@ -5,8 +5,11 @@ from __future__ import annotations
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
+from sqlalchemy import func
+
 from src.platform.anamnesis_utils import (
     FIELD_TYPES,
+    anamnesis_fill_progress,
     deserialize_response_value,
     display_response_value,
     dump_options,
@@ -26,6 +29,15 @@ from src.platform.models import (
     PatientAnamnesis,
     utcnow,
 )
+from src.platform.pagination_utils import paginate_query
+from src.platform.record_nav import patient_new_record_actions, patient_record_tabs
+
+SEX_CHOICES = {
+    "feminino": "Feminino",
+    "masculino": "Masculino",
+    "outro": "Outro",
+    "nao_informado": "Não informado",
+}
 
 anamnesis_bp = Blueprint("anamnesis", __name__, url_prefix="/panel")
 
@@ -70,16 +82,35 @@ def _active_fields(template_id: int) -> list[AnamnesisField]:
 @anamnesis_bp.route("/anamneses")
 @login_required
 def templates_list():
-    templates = AnamnesisTemplate.query.order_by(AnamnesisTemplate.name.asc()).all()
-    rows = []
-    for template in templates:
-        rows.append(
-            {
-                "template": template,
-                "field_count": template.fields.filter_by(is_active=True).count(),
-            }
+    query = AnamnesisTemplate.query.order_by(AnamnesisTemplate.name.asc())
+    page_obj = paginate_query(query)
+    templates = page_obj.items
+    counts: dict[int, int] = {}
+    if templates:
+        ids = [t.id for t in templates]
+        rows_count = (
+            db.session.query(AnamnesisField.template_id, func.count(AnamnesisField.id))
+            .filter(
+                AnamnesisField.template_id.in_(ids),
+                AnamnesisField.is_active.is_(True),
+            )
+            .group_by(AnamnesisField.template_id)
+            .all()
         )
-    return render_template("panel/anamnesis_templates_list.html", rows=rows)
+        counts = {tid: int(cnt) for tid, cnt in rows_count}
+    rows = [
+        {"template": template, "field_count": counts.get(template.id, 0)}
+        for template in templates
+    ]
+    return render_template(
+        "panel/anamnesis_templates_list.html",
+        rows=rows,
+        page_obj=page_obj,
+        breadcrumbs=[
+            {"label": "Dashboard", "url": url_for("panel.dashboard")},
+            {"label": "Anamneses", "url": None},
+        ],
+    )
 
 
 @anamnesis_bp.route("/anamneses/new", methods=["GET", "POST"])
@@ -288,6 +319,39 @@ def patient_anamnesis_new(patient_id: int):
     )
 
 
+def _anamnesis_edit_context(
+    patient: Patient,
+    anamnesis: PatientAnamnesis,
+    *,
+    grouped,
+    values,
+    errors,
+    fields,
+):
+    return {
+        "patient": patient,
+        "anamnesis": anamnesis,
+        "grouped": grouped,
+        "values": values,
+        "errors": errors,
+        "fill_progress": anamnesis_fill_progress(fields, values),
+        "status_labels": STATUS_LABELS,
+        "deserialize_response_value": deserialize_response_value,
+        "parse_options": parse_options,
+        "sex_choices": SEX_CHOICES,
+        "record_tabs": patient_record_tabs(patient.id, active="anamnesis"),
+        "new_record_actions": patient_new_record_actions(patient.id),
+        "breadcrumbs": [
+            {"label": "Dashboard", "url": url_for("panel.dashboard")},
+            {
+                "label": patient.name,
+                "url": url_for("panel.patient_detail", patient_id=patient.id, tab="anamnesis"),
+            },
+            {"label": anamnesis.template.name, "url": None},
+        ],
+    }
+
+
 @anamnesis_bp.route(
     "/patients/<int:patient_id>/anamneses/<int:anamnesis_id>",
     methods=["GET"],
@@ -308,6 +372,17 @@ def patient_anamnesis_view(patient_id: int, anamnesis_id: int):
         status_labels=STATUS_LABELS,
         display_response_value=display_response_value,
         deserialize_response_value=deserialize_response_value,
+        sex_choices=SEX_CHOICES,
+        record_tabs=patient_record_tabs(patient.id, active="anamnesis"),
+        new_record_actions=patient_new_record_actions(patient.id),
+        breadcrumbs=[
+            {"label": "Dashboard", "url": url_for("panel.dashboard")},
+            {
+                "label": patient.name,
+                "url": url_for("panel.patient_detail", patient_id=patient.id, tab="anamnesis"),
+            },
+            {"label": anamnesis.template.name, "url": None},
+        ],
     )
 
 
@@ -358,7 +433,7 @@ def patient_anamnesis_edit(patient_id: int, anamnesis_id: int):
         if action == "complete":
             errors = validate_required_fields(fields, request.form)
             if errors:
-                flash("Existem campos obrigatórios por preencher.", "error")
+                flash(f"Revise {len(errors)} campos obrigatórios.", "error")
                 values = {
                     field.id: deserialize_response_value(
                         field, serialize_response_value(field, request.form)
@@ -367,14 +442,14 @@ def patient_anamnesis_edit(patient_id: int, anamnesis_id: int):
                 }
                 return render_template(
                     "panel/patient_anamnesis_edit.html",
-                    patient=patient,
-                    anamnesis=anamnesis,
-                    grouped=grouped,
-                    values=values,
-                    errors=errors,
-                    status_labels=STATUS_LABELS,
-                    deserialize_response_value=deserialize_response_value,
-                    parse_options=parse_options,
+                    **_anamnesis_edit_context(
+                        patient,
+                        anamnesis,
+                        grouped=grouped,
+                        values=values,
+                        errors=errors,
+                        fields=fields,
+                    ),
                 )
 
         upsert_responses(anamnesis.id, fields, request.form)
@@ -410,12 +485,12 @@ def patient_anamnesis_edit(patient_id: int, anamnesis_id: int):
     }
     return render_template(
         "panel/patient_anamnesis_edit.html",
-        patient=patient,
-        anamnesis=anamnesis,
-        grouped=grouped,
-        values=values,
-        errors={},
-        status_labels=STATUS_LABELS,
-        deserialize_response_value=deserialize_response_value,
-        parse_options=parse_options,
+        **_anamnesis_edit_context(
+            patient,
+            anamnesis,
+            grouped=grouped,
+            values=values,
+            errors={},
+            fields=fields,
+        ),
     )
