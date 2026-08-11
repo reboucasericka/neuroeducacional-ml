@@ -117,18 +117,4 @@ Dataset sintético, EDA, Decision Tree, KMeans — resultados **não clínicos**
 - PostgreSQL se houver deploy real
 - **Não** planeado como próximo passo: IA diagnóstica
 
----
 
-## Como apresentar este projeto em entrevista (60–90 s)
-
-> “Desenvolvi o NeuroLearn Analytics, uma plataforma Flask de prontuário
-> longitudinal para Neuropsicopedagogia e Psicopedagogia. O foco é organizar
-> anamnese, avaliação, perfil cognitivo, intervenção e evolução — com
-> autenticação, CSRF e isolamento por profissional. Em paralelo, mantive um
-> laboratório de Data Science com dados 100% sintéticos (EDA, árvore de decisão
-> e clustering), explicitamente separado do prontuário para não misturar ML com
-> dados identificáveis. Há um caso demo completo (DEMO-001) para percorrer a
-> timeline, e a suite de testes cobre fluxos críticos e segurança.”
-
-Pontos de follow-up possíveis: schema, seed idempotente, anamnese dinâmica,
-trade-off SQLite vs PostgreSQL, limites éticos do ML.
