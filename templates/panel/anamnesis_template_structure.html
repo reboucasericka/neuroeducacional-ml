@@ -1,0 +1,74 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Estrutura — {{ template.name }}{% endblock %}
+{% block page_title %}Estrutura: {{ template.name }}{% endblock %}
+
+{% block panel_content %}
+<section class="panel-card">
+  <p class="muted">{{ template.description or 'Sem descrição.' }}</p>
+  <p><span class="pill">{{ template.category }}</span> · {{ template.target_population or 'população n/d' }} · slug <code>{{ template.slug }}</code></p>
+</section>
+
+<div class="panel-two">
+  <section class="panel-card">
+    <h3>Campos por secção</h3>
+    {% for section, section_fields in grouped.items() %}
+      <h4 class="section-title">{{ section }}</h4>
+      <ul class="panel-list">
+        {% for field in section_fields %}
+          <li>
+            <strong>{{ field.label }}</strong>
+            <span>{{ field.field_type }}{% if field.is_required %} · obrigatório{% endif %}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">Ainda sem campos ativos.</p>
+    {% endfor %}
+
+    <h4 class="section-title">Todos os campos</h4>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>#</th><th>Secção</th><th>Campo</th><th>Tipo</th><th>Ativo</th><th></th></tr></thead>
+        <tbody>
+          {% for field in fields %}
+            <tr>
+              <td>{{ field.sort_order }}</td>
+              <td>{{ field.section }}</td>
+              <td>{{ field.label }}</td>
+              <td>{{ field.field_type }}</td>
+              <td>{{ 'Sim' if field.is_active else 'Não' }}</td>
+              <td>
+                <form method="post" action="{{ url_for('anamnesis.field_toggle', template_id=template.id, field_id=field.id) }}">
+                  {% include "partials/csrf_field.html" %}
+                  <button class="linkish" type="submit">{% if field.is_active %}Desativar{% else %}Ativar{% endif %}</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel-card">
+    <h3>Adicionar campo</h3>
+    <form method="post" class="stack-form">
+      {% include "partials/csrf_field.html" %}
+      <label class="field"><span>Secção</span><input name="section" value="Geral" required /></label>
+      <label class="field"><span>Etiqueta</span><input name="label" required /></label>
+      <label class="field">
+        <span>Tipo</span>
+        <select name="field_type">
+          {% for t in field_types %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span>Opções (separadas por |)</span><input name="options" placeholder="Sim|Não|Não sei" /></label>
+      <label class="field"><span>Ajuda</span><input name="help_text" /></label>
+      <label class="field"><span>Placeholder</span><input name="placeholder" /></label>
+      <label class="field"><span>Ordem</span><input type="number" name="sort_order" /></label>
+      <label class="field field--check"><input type="checkbox" name="is_required" /><span>Obrigatório</span></label>
+      <button class="btn btn--primary" type="submit">Adicionar campo</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

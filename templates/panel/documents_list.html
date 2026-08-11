@@ -1,0 +1,57 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Documentos — {{ patient.name }}{% endblock %}
+{% block page_title %}Documentos e consentimentos{% endblock %}
+
+{% block panel_content %}
+<p class="muted">Upload de ficheiros numa fase posterior. Consentimentos são <strong>MODELO DEMONSTRATIVO — REVISÃO JURÍDICA NECESSÁRIA</strong>.</p>
+
+<div class="panel-two">
+  <form class="panel-card form-grid" method="post">
+    {% include "partials/csrf_field.html" %}
+    <input type="hidden" name="form_kind" value="document" />
+    <h3 class="field--full">Registar documento (metadados)</h3>
+    <label class="field"><span>Título *</span><input name="title" required /></label>
+    <label class="field">
+      <span>Tipo</span>
+      <select name="document_type">{% for k,l in document_types %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select>
+    </label>
+    <label class="field"><span>Data</span><input type="date" name="recorded_at" /></label>
+    <label class="field field--full"><span>Descrição</span><textarea name="description" rows="2"></textarea></label>
+    <div class="form-actions"><button class="btn btn--primary" type="submit">Registar</button></div>
+  </form>
+
+  <form class="panel-card form-grid" method="post">
+    {% include "partials/csrf_field.html" %}
+    <input type="hidden" name="form_kind" value="consent" />
+    <h3 class="field--full">Consentimento (demo)</h3>
+    <label class="field">
+      <span>Tipo</span>
+      <select name="consent_type">{% for k,l in consent_types %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select>
+    </label>
+    <label class="field--check"><input type="checkbox" name="accepted" /><span>Aceite registado</span></label>
+    <label class="field field--full"><span>Notas</span><textarea name="notes" rows="2">MODELO DEMONSTRATIVO — REVISÃO JURÍDICA NECESSÁRIA.</textarea></label>
+    <div class="form-actions"><button class="btn btn--primary" type="submit">Registar consentimento</button></div>
+  </form>
+</div>
+
+<section class="panel-card">
+  <h3>Documentos</h3>
+  <ul class="panel-list">
+    {% for d in docs %}
+      <li><strong>{{ d.title }}</strong><span>{{ d.document_type }} · {{ d.recorded_at.strftime('%d/%m/%Y') }}</span></li>
+    {% else %}
+      <li><span class="muted">Sem documentos.</span></li>
+    {% endfor %}
+  </ul>
+</section>
+<section class="panel-card">
+  <h3>Consentimentos</h3>
+  <ul class="panel-list">
+    {% for c in consents %}
+      <li><strong>{{ c.consent_type }}</strong><span>{% if c.accepted %}Aceite{% else %}Não aceite{% endif %} · {{ c.created_at.strftime('%d/%m/%Y') if c.created_at else '—' }}</span></li>
+    {% else %}
+      <li><span class="muted">Sem consentimentos.</span></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

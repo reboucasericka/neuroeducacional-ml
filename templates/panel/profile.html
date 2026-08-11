@@ -1,0 +1,83 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Perfil — NeuroLearn{% endblock %}
+{% block page_title %}Perfil profissional{% endblock %}
+
+{% block panel_content %}
+<section class="panel-card">
+  <p class="muted" style="margin-bottom: 1rem">
+    Identidade profissional no contexto brasileiro.
+    O campo de registo é uma identificação profissional opcional — não afirma equivalência a conselho.
+  </p>
+  <form method="post" class="form-grid">
+    {% include "partials/csrf_field.html" %}
+
+    <label class="field">
+      <span>Nome</span>
+      <input type="text" name="name" required value="{{ current_user.name }}" />
+    </label>
+    <label class="field">
+      <span>E-mail</span>
+      <input type="email" name="email" required value="{{ current_user.email }}" />
+    </label>
+    <label class="field">
+      <span>Tipo profissional</span>
+      <select name="professional_type" required>
+        {% for key in types %}
+          <option value="{{ key }}" {% if current_user.professional_type == key %}selected{% endif %}>
+            {{ type_labels[key] }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Registro / identificação profissional</span>
+      <input type="text" name="registration_number"
+             value="{{ current_user.registration_number or '' }}"
+             placeholder="Opcional" />
+    </label>
+    <label class="field">
+      <span>Formação</span>
+      <input type="text" name="education" value="{{ current_user.education or '' }}" />
+    </label>
+    <label class="field">
+      <span>Especialização</span>
+      <input type="text" name="specialization" value="{{ current_user.specialization or '' }}" />
+    </label>
+    <label class="field">
+      <span>Instituição / consultório</span>
+      <input type="text" name="workplace" value="{{ current_user.workplace or '' }}" />
+    </label>
+    <label class="field">
+      <span>Telefone profissional</span>
+      <input type="text" name="phone" value="{{ current_user.phone or '' }}" />
+    </label>
+    <label class="field">
+      <span>Cidade</span>
+      <input type="text" name="city" value="{{ current_user.city or '' }}" />
+    </label>
+    <label class="field">
+      <span>Estado</span>
+      <input type="text" name="state" value="{{ current_user.state or '' }}" maxlength="80" />
+    </label>
+    <label class="field field--full">
+      <span>Como preferir chamar quem acompanha</span>
+      <select name="preferred_subject_term">
+        {% for value, label in subject_term_choices %}
+          <option value="{{ value }}"
+            {% if (current_user.preferred_subject_term or 'patient') == value %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field field--full">
+      <span>Bio profissional</span>
+      <textarea name="bio" rows="4">{{ current_user.bio or '' }}</textarea>
+    </label>
+
+    <div class="field field--full">
+      <button class="btn btn--primary" type="submit">Guardar perfil</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

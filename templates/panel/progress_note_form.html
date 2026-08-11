@@ -1,0 +1,58 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Nova evolução — {{ patient.name }}{% endblock %}
+{% block page_title %}Registar evolução{% endblock %}
+
+{% block panel_content %}
+<form method="post" class="panel-card form-grid">
+  {% include "partials/csrf_field.html" %}
+  <p class="muted field--full">Interpretação qualitativa do profissional. Sem score clínico automático.</p>
+  <label class="field">
+    <span>Estado do progresso</span>
+    <select name="progress_status">
+      {% for k,l in progress_statuses %}
+        <option value="{{ k }}">{{ l }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Plano de intervenção</span>
+    <select name="intervention_plan_id">
+      <option value="">—</option>
+      {% for p in plans %}<option value="{{ p.id }}">{{ p.title }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Objetivo</span>
+    <select name="intervention_goal_id">
+      <option value="">—</option>
+      {% for g in goals %}<option value="{{ g.id }}">{{ g.title }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Sessão</span>
+    <select name="session_id">
+      <option value="">—</option>
+      {% for s in sessions %}
+        <option value="{{ s.id }}">{{ s.session_date.strftime('%d/%m/%Y') }} · {{ s.session_type }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field field--full"><span>Síntese</span><textarea name="summary" rows="3"></textarea></label>
+  <label class="field field--full"><span>Evidência observada</span><textarea name="evidence" rows="3"></textarea></label>
+  <label class="field field--full"><span>Interpretação profissional</span><textarea name="professional_interpretation" rows="3"></textarea></label>
+  <label class="field field--full"><span>Próximo passo</span><textarea name="next_step" rows="2"></textarea></label>
+
+  <h3 class="field--full" style="margin:0.5rem 0 0">Medida opcional</h3>
+  <p class="muted field--full">Só compare longitudinalmente se mesma medida, unidade e escala.</p>
+  <label class="field"><span>Rótulo</span><input name="measure_label" /></label>
+  <label class="field"><span>Valor</span><input name="measure_value" /></label>
+  <label class="field"><span>Unidade</span><input name="measure_unit" /></label>
+  <label class="field"><span>Referência de escala</span><input name="measure_scale" /></label>
+  <label class="field field--full"><span>Notas da medida</span><textarea name="measure_notes" rows="2"></textarea></label>
+
+  <div class="field field--full">
+    <button class="btn btn--primary" type="submit">Guardar</button>
+    <a class="btn btn--ghost" href="{{ url_for('intervention.evolution_view', patient_id=patient.id) }}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

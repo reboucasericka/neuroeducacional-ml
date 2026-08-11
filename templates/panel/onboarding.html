@@ -1,0 +1,32 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Área de atuação — NeuroLearn{% endblock %}
+{% block page_title %}Bem-vindo(a){% endblock %}
+
+{% block panel_content %}
+<section class="panel-card">
+  <h2 style="margin-top:0">Escolha sua área de atuação</h2>
+  <p class="muted">
+    NeuroLearn Analytics é voltada à Neuropsicopedagogia e à Psicopedagogia
+    no contexto brasileiro. Pode alterar depois em Perfil.
+  </p>
+
+  <form method="post" class="onboarding-form">
+    {% include "partials/csrf_field.html" %}
+    <div class="onboarding-grid">
+      {% for key in types %}
+        <label class="onboarding-card">
+          <input type="radio" name="professional_type" value="{{ key }}" required
+                 {% if loop.first %}checked{% endif %} />
+          <strong>{{ type_labels[key] }}</strong>
+          <span>{{ type_blurbs[key] }}</span>
+        </label>
+      {% endfor %}
+    </div>
+    <p class="muted" style="margin-top:1.25rem">
+      A terminologia na interface (Paciente / Aprendente / Avaliando) segue a área
+      escolhida e pode ser ajustada no perfil.
+    </p>
+    <button class="btn btn--primary" type="submit">Continuar</button>
+  </form>
+</section>
+{% endblock %}

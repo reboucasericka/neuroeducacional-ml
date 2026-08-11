@@ -1,0 +1,38 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Nova anamnese — {{ patient.name }}{% endblock %}
+{% block page_title %}Nova anamnese{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <p class="eyebrow">{{ patient.internal_code }}</p>
+  <h2>{{ patient.name }}</h2>
+  <p class="muted">
+    {{ patient.age_years }} anos · Sexo: {{ patient.sex }}
+    {% if patient.education_level %} · {{ patient.education_level }}{% endif %}
+  </p>
+</section>
+
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <label class="field field--full">
+    <span>Modelo de anamnese *</span>
+    <select name="template_id" required>
+      <option value="">Selecionar…</option>
+      {% for t in templates %}
+        <option value="{{ t.id }}">{{ t.name }} ({{ t.category }})</option>
+      {% endfor %}
+    </select>
+  </label>
+  {% if not templates %}
+    <p class="muted field--full">Não há modelos ativos. Ative um template no catálogo.</p>
+  {% endif %}
+  <label class="field field--full">
+    <span>Notas iniciais</span>
+    <textarea name="notes" rows="2"></textarea>
+  </label>
+  <div class="form-actions">
+    <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='anamnesis') }}">Cancelar</a>
+    <button class="btn btn--primary" type="submit" {% if not templates %}disabled{% endif %}>Iniciar preenchimento</button>
+  </div>
+</form>
+{% endblock %}

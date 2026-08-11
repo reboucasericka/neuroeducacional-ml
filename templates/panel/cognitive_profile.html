@@ -1,0 +1,115 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Perfil Cognitivo — {{ patient.name }}{% endblock %}
+{% block page_title %}Perfil Cognitivo{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">
+        {{ patient.internal_code }}
+        {% if patient.notes and 'DEMONSTRAÇÃO' in patient.notes %} · DEMONSTRAÇÃO{% endif %}
+      </p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">
+        {{ patient.age_years }} anos · Sexo: {{ sex_labels.get(patient.sex, patient.sex) }}
+        {% if patient.education_level %} · Escolaridade: {{ patient.education_level }}{% endif %}
+      </p>
+    </div>
+    <div class="table-actions">
+      <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id) }}">Ficha</a>
+      <a class="btn btn--primary" href="{{ url_for('cognitive.cognitive_indicator_new', patient_id=patient.id) }}">+ Indicador manual</a>
+    </div>
+  </div>
+</section>
+
+<p class="muted panel-notice">
+  Perfil profissional rastreável. Resultados com escalas diferentes <strong>não</strong> são convertidos automaticamente.
+  Distinto do dataset sintético de Data Science / ML.
+</p>
+
+<form class="panel-card panel-toolbar" method="get">
+  <label class="field" style="min-width:140px">
+    <span class="sr-only">Período</span>
+    <select name="period">
+      <option value="all" {% if period == 'all' %}selected{% endif %}>Todas as avaliações</option>
+      <option value="3m" {% if period == '3m' %}selected{% endif %}>Últimos 3 meses</option>
+      <option value="6m" {% if period == '6m' %}selected{% endif %}>Últimos 6 meses</option>
+      <option value="12m" {% if period == '12m' %}selected{% endif %}>Últimos 12 meses</option>
+    </select>
+  </label>
+  <label class="field" style="min-width:180px">
+    <span class="sr-only">Domínio</span>
+    <select name="domain_id">
+      <option value="">Todos os domínios</option>
+      {% for d in domains %}
+        <option value="{{ d.id }}" {% if domain_filter == d.id %}selected{% endif %}>{{ d.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field" style="min-width:160px">
+    <span class="sr-only">Instrumento</span>
+    <select name="instrument_id">
+      <option value="">Todos os instrumentos</option>
+      {% for iid, name in instrument_options.items() %}
+        <option value="{{ iid }}" {% if instrument_filter == iid %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="btn btn--ghost" type="submit">Filtrar</button>
+</form>
+
+<section class="domain-grid">
+  {% for card in cards %}
+    <article class="panel-card domain-card">
+      <h3>{{ card.domain.name }}</h3>
+      <p class="muted">
+        {{ card.skills_count }} habilidade{{ '' if card.skills_count == 1 else 's' }} avaliada{{ '' if card.skills_count == 1 else 's' }}
+        · {{ card.indicators_count }} indicador{{ '' if card.indicators_count == 1 else 'es' }}
+      </p>
+      <p class="muted">
+        Última avaliação:
+        {% if card.last_date %}{{ card.last_date.strftime('%d/%m/%Y') }}{% else %}—{% endif %}
+      </p>
+      {% if card.skill_previews %}
+        <ul class="panel-list domain-skills">
+          {% for sp in card.skill_previews %}
+            <li>
+              <strong>{{ sp.skill_name }}</strong>
+              <span>{{ sp.source }}{% if sp.date %} · {{ sp.date.strftime('%d/%m/%Y') }}{% endif %}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">Sem indicadores associados neste período.</p>
+      {% endif %}
+      {% if card.latest_interpretation %}
+        <p class="muted"><em>{{ card.latest_interpretation[:140] }}{% if card.latest_interpretation|length > 140 %}…{% endif %}</em></p>
+      {% endif %}
+      <a class="btn btn--ghost" href="{{ url_for('cognitive.cognitive_domain_detail', patient_id=patient.id, domain_id=card.domain.id) }}">Ver detalhes</a>
+    </article>
+  {% endfor %}
+</section>
+
+<section class="panel-card">
+  <div class="panel-card__head">
+    <h2>Timeline longitudinal</h2>
+  </div>
+  <p class="muted">Eventos do prontuário (anamneses, avaliações, indicadores, histórico) — não mistura scores.</p>
+  {% if timeline %}
+    <ul class="timeline cognitive-timeline">
+      {% for ev in timeline %}
+        <li>
+          <time>{{ ev.when.strftime('%d %b %Y') }}</time>
+          <strong>{{ ev.title }}</strong>
+          <span class="pill">{{ ev.kind }}</span>
+          <p>{{ ev.detail }}</p>
+          {% if ev.url %}<a href="{{ ev.url }}">Abrir</a>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Sem eventos no período selecionado.</p>
+  {% endif %}
+</section>
+{% endblock %}

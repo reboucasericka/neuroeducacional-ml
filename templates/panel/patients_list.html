@@ -1,0 +1,47 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{{ subject_label_plural }} — NeuroLearn{% endblock %}
+{% block page_title %}{{ subject_label_plural }}{% endblock %}
+
+{% block panel_content %}
+<div class="panel-toolbar">
+  <form class="panel-search" method="get">
+    <label class="sr-only" for="q">Pesquisar</label>
+    <input id="q" type="search" name="q" value="{{ q }}" placeholder="Pesquisar por nome ou código" />
+    <button class="btn btn--ghost" type="submit">Pesquisar</button>
+  </form>
+  <a class="btn btn--primary" href="{{ url_for('panel.patients_new') }}">Novo {{ subject_label|lower }}</a>
+</div>
+
+<section class="panel-card">
+  {% if patients %}
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Nome</th>
+            <th>Idade</th>
+            <th>Sexo</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in patients %}
+            <tr>
+              <td>{{ p.internal_code }}</td>
+              <td>{{ p.name }}{% if p.is_minor %} <span class="pill">Menor</span>{% endif %}</td>
+              <td>{{ p.age_years }}</td>
+              <td>{{ p.sex }}</td>
+              <td>{{ p.status }}</td>
+              <td><a href="{{ url_for('panel.patient_detail', patient_id=p.id) }}">Abrir</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p class="muted">Nenhum {{ subject_label|lower }} encontrado.</p>
+  {% endif %}
+</section>
+{% endblock %}

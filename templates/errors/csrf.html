@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Formulário inválido — NeuroLearn{% endblock %}
+{% block content %}
+<section class="auth-section">
+  <div class="container">
+    <div class="auth-card" style="max-width:36rem;margin:0 auto">
+      <h1>Pedido rejeitado</h1>
+      <p>{{ message }}</p>
+      <p><a class="btn btn--primary" href="javascript:history.back()">Voltar</a>
+         <a class="btn btn--ghost" href="{{ url_for('index') }}">Início</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}

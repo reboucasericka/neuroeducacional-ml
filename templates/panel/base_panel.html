@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Painel — NeuroLearn Analytics{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,480;9..144,560;9..144,650&family=Outfit:wght@380;450;560;650&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/panel.css') }}" />
+  </head>
+  <body class="panel-body">
+    <a class="skip-link" href="#panel-content">Saltar para o conteúdo</a>
+
+    <div class="panel-shell">
+      <aside class="panel-sidebar" aria-label="Navegação do painel">
+        <a class="brand panel-brand" href="{{ url_for('panel.dashboard') }}">
+          <span class="brand__mark" aria-hidden="true"></span>
+          <span class="brand__text">
+            <span class="brand__name">NeuroLearn</span>
+            <span class="brand__tag">Painel</span>
+          </span>
+        </a>
+
+        <nav class="panel-nav">
+          <a href="{{ url_for('panel.dashboard') }}" class="{% if request.endpoint == 'panel.dashboard' %}is-active{% endif %}">Dashboard</a>
+          <a href="{{ url_for('panel.patients_list') }}" class="{% if 'patient' in (request.endpoint or '') %}is-active{% endif %}">{{ subject_label_plural }} / Prontuário</a>
+          <a href="{{ url_for('anamnesis.templates_list') }}" class="{% if 'anamnesis' in (request.endpoint or '') %}is-active{% endif %}">Anamneses</a>
+          <a href="{{ url_for('assessment.instruments_list') }}" class="{% if 'instrument' in (request.endpoint or '') %}is-active{% endif %}">Instrumentos</a>
+          <a href="{{ url_for('assessment.assessments_list') }}" class="{% if request.endpoint == 'assessment.assessments_list' or 'patient_assessment' in (request.endpoint or '') %}is-active{% endif %}">Avaliações</a>
+          <a href="{{ url_for('cognitive.instrument_mappings') }}" class="{% if 'cognitive' in (request.endpoint or '') %}is-active{% endif %}">Perfil / Mappings</a>
+          <a href="{{ url_for('panel.reports_placeholder') }}">Relatórios</a>
+          <a href="{{ url_for('panel.profile') }}">Perfil</a>
+          <a href="{{ url_for('panel.settings_placeholder') }}">Configurações</a>
+        </nav>
+
+        <div class="panel-sidebar__foot">
+          <p class="panel-demo-badge">DEMONSTRAÇÃO</p>
+          <a href="{{ url_for('index') }}">Ver landing</a>
+          <form method="post" action="{{ url_for('auth.logout') }}" class="logout-form">
+            {% include "partials/csrf_field.html" %}
+            <button class="linkish" type="submit">Sair</button>
+          </form>
+        </div>
+      </aside>
+
+      <div class="panel-main">
+        <header class="panel-topbar">
+          <div>
+            <p class="eyebrow">Área profissional</p>
+            <h1 class="panel-topbar__title">{% block page_title %}Painel{% endblock %}</h1>
+          </div>
+          <div class="panel-topbar__user">
+            <span>{{ current_user.name }}</span>
+            <small>{{ professional_type_display }}</small>
+          </div>
+        </header>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul class="flash-list panel-flash">
+              {% for category, message in messages %}
+                <li class="flash flash--{{ category }}">{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+        <main id="panel-content" class="panel-content">
+          {% block panel_content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

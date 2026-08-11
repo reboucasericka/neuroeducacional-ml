@@ -1,0 +1,59 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{{ instrument.name }} — Catálogo{% endblock %}
+{% block page_title %}{{ instrument.name }}{% endblock %}
+
+{% block panel_content %}
+<div class="panel-toolbar">
+  <p class="muted">Entrada de catálogo · sem conteúdo interno do instrumento</p>
+  <div class="table-actions">
+    <a class="btn btn--ghost" href="{{ url_for('assessment.instruments_list') }}">Catálogo</a>
+    <a class="btn btn--primary" href="{{ url_for('assessment.instruments_edit', instrument_id=instrument.id) }}">Editar</a>
+  </div>
+</div>
+
+<section class="panel-card">
+  <dl class="readonly-dl">
+    <div><dt>Sigla</dt><dd>{{ instrument.short_name or '—' }}</dd></div>
+    <div><dt>Slug</dt><dd>{{ instrument.slug or '—' }}</dd></div>
+    <div><dt>Categoria</dt><dd>{{ instrument.category }}</dd></div>
+    <div><dt>População</dt><dd>{{ instrument.target_population or '—' }}</dd></div>
+    <div>
+      <dt>Faixa etária</dt>
+      <dd>
+        {% if instrument.minimum_age is not none or instrument.maximum_age is not none %}
+          {{ instrument.minimum_age if instrument.minimum_age is not none else '—' }}
+          –
+          {{ instrument.maximum_age if instrument.maximum_age is not none else '—' }}
+        {% else %}
+          —
+        {% endif %}
+      </dd>
+    </div>
+    <div><dt>Objetivo</dt><dd>{{ instrument.purpose or '—' }}</dd></div>
+    <div><dt>Licença</dt><dd>{{ license_labels.get(instrument.license_status, instrument.license_status) }}</dd></div>
+    <div><dt>Copyright</dt><dd>{{ copyright_labels.get(instrument.copyright_status, instrument.copyright_status or 'Desconhecido') }}</dd></div>
+    <div><dt>Digitalização</dt><dd>{{ digital_labels.get(instrument.digital_use_status, instrument.digital_use_status or 'Verificar') }}</dd></div>
+    <div><dt>Fonte oficial</dt><dd>{{ instrument.official_source or '—' }}</dd></div>
+    <div><dt>Notas de licença</dt><dd>{{ instrument.license_notes or '—' }}</dd></div>
+    <div><dt>Estado</dt><dd>{% if instrument.is_active %}Ativo{% else %}Inativo{% endif %}</dd></div>
+    <div><dt>Descrição</dt><dd>{{ instrument.description or '—' }}</dd></div>
+    <div><dt>Referência</dt><dd>{{ instrument.reference or '—' }}</dd></div>
+    <div><dt>Notas</dt><dd>{{ instrument.notes or '—' }}</dd></div>
+  </dl>
+</section>
+
+<section class="panel-card">
+  <h3>Uso profissional (metadado)</h3>
+  <p class="muted">Independente de licença/digitalização. Default: Verificar. Não apaga histórico de avaliações.</p>
+  <ul class="kv-list">
+    {% for scope in scopes %}
+      <li>
+        <span>{{ professional_type_label(scope.professional_type) }}</span>
+        <strong>{{ scope_status_label(scope.status) }}</strong>
+      </li>
+    {% else %}
+      <li><span>Escopos</span><strong>Ainda não definidos</strong></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

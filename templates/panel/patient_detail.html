@@ -1,0 +1,283 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{{ patient.name }} — NeuroLearn{% endblock %}
+{% block page_title %}{{ patient.name }}{% endblock %}
+
+{% block panel_content %}
+<section class="patient-hero panel-card">
+  <div>
+    <p class="eyebrow">{{ patient.internal_code }}{% if patient.notes and 'DEMONSTRAÇÃO' in patient.notes %} · DEMONSTRAÇÃO{% endif %}</p>
+    <h2>{{ patient.name }}</h2>
+    <p class="muted">
+      {{ patient.age_years }} anos · Sexo: {{ sex_choices.get(patient.sex, patient.sex) }}
+      {% if patient.is_minor %} · Menor{% else %} · Adulto{% endif %}
+      {% if patient.education_level %} · {{ patient.education_level }}{% endif %}
+    </p>
+  </div>
+  <a class="btn btn--ghost" href="{{ url_for('panel.patients_list') }}">Voltar à lista</a>
+</section>
+
+<nav class="record-tabs" aria-label="Secções do prontuário">
+  {% set tabs = [
+    ('overview', 'Visão Geral', none),
+    ('anamnesis', 'Anamnese', none),
+    ('plan', 'Plano de Avaliação', 'care.plans_list'),
+    ('sessions', 'Sessões', 'care.sessions_list'),
+    ('assessments', 'Avaliações', none),
+    ('profile', 'Perfil Cognitivo', 'cognitive.cognitive_profile'),
+    ('feedbacks', 'Devolutivas', 'intervention.feedbacks_list'),
+    ('intervention', 'Intervenção', 'intervention.interventions_list'),
+    ('evolution', 'Evolução', 'intervention.evolution_view'),
+    ('referrals', 'Encaminhamentos', 'care.referrals'),
+    ('documents', 'Documentos', 'care.documents'),
+    ('history', 'Histórico', none)
+  ] %}
+  {% for key, label, endpoint in tabs %}
+    {% if endpoint %}
+      <a href="{{ url_for(endpoint, patient_id=patient.id) }}" class="{% if tab == key %}is-active{% endif %}">{{ label }}</a>
+    {% else %}
+      <a href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab=key) }}" class="{% if tab == key %}is-active{% endif %}">{{ label }}</a>
+    {% endif %}
+  {% endfor %}
+</nav>
+
+{% if tab == 'overview' %}
+  <div class="panel-two">
+    <section class="panel-card">
+      <h3>Identificação</h3>
+      <ul class="kv-list">
+        <li><span>Código</span><strong>{{ patient.internal_code }}</strong></li>
+        <li><span>Nascimento</span><strong>{{ patient.birth_date.strftime('%d/%m/%Y') }}</strong></li>
+        <li><span>Contacto</span><strong>{{ patient.contact_phone or patient.contact_email or '—' }}</strong></li>
+        <li><span>Estado</span><strong>{{ patient.status }}</strong></li>
+      </ul>
+    </section>
+    <section class="panel-card">
+      <h3>Responsáveis</h3>
+      {% if patient.guardians %}
+        <ul class="panel-list">
+          {% for g in patient.guardians %}
+            <li>
+              <strong>{{ g.name }}</strong>
+              <span>{{ g.relationship }}{% if g.is_primary %} · principal{% endif %}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">Sem responsável associado.</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <section class="panel-stats">
+    <article class="stat-card">
+      <p>Anamnese mais recente</p>
+      <strong style="font-size:1rem">
+        {% if anamnesis_summary.last and anamnesis_summary.last.started_at %}
+          {{ anamnesis_summary.last.started_at.strftime('%d/%m/%Y') }}
+        {% else %}—{% endif %}
+      </strong>
+    </article>
+    <article class="stat-card">
+      <p>Plano ativo</p>
+      <strong style="font-size:1rem">{{ care_summary.active_plan.title if care_summary.active_plan else '—' }}</strong>
+    </article>
+    <article class="stat-card">
+      <p>Próxima sessão</p>
+      <strong style="font-size:1rem">
+        {% if care_summary.next_session %}{{ care_summary.next_session.session_date.strftime('%d/%m/%Y') }}{% else %}—{% endif %}
+      </strong>
+    </article>
+    <article class="stat-card">
+      <p>Última sessão</p>
+      <strong style="font-size:1rem">
+        {% if care_summary.last_session %}{{ care_summary.last_session.session_date.strftime('%d/%m/%Y') }}{% else %}—{% endif %}
+      </strong>
+    </article>
+  </section>
+  <section class="panel-stats">
+    <article class="stat-card"><p>Avaliações em andamento</p><strong>{{ assessment_summary.draft }}</strong></article>
+    <article class="stat-card">
+      <p>Perfil atualizado</p>
+      <strong style="font-size:1rem">
+        {% if care_summary.last_indicator and care_summary.last_indicator.updated_at %}
+          {{ care_summary.last_indicator.updated_at.strftime('%d/%m/%Y') }}
+        {% else %}—{% endif %}
+      </strong>
+    </article>
+    <article class="stat-card"><p>Encaminhamentos pendentes</p><strong>{{ care_summary.pending_referrals }}</strong></article>
+    <article class="stat-card"><p>Avaliações concluídas</p><strong>{{ assessment_summary.completed }}</strong></article>
+  </section>
+{% elif tab == 'history' %}
+  <section class="panel-card">
+    <h3>Histórico longitudinal</h3>
+    {% if history %}
+      <ul class="timeline">
+        {% for h in history %}
+          <li>
+            <time>{{ h.recorded_at.strftime('%d/%m/%Y') }}</time>
+            <strong>{{ h.title }}</strong>
+            <span class="pill">{{ h.category }}</span>
+            <p>{{ h.content }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="muted">Sem entradas de histórico.</p>
+    {% endif %}
+  </section>
+{% elif tab == 'assessments' %}
+  <section class="panel-stats">
+    <article class="stat-card"><p>Avaliações realizadas</p><strong>{{ assessment_summary.completed }}</strong></article>
+    <article class="stat-card"><p>Em andamento</p><strong>{{ assessment_summary.draft }}</strong></article>
+    <article class="stat-card">
+      <p>Última avaliação</p>
+      <strong style="font-size:1rem">
+        {% if assessment_summary.last %}
+          {{ assessment_summary.last.assessment_date.strftime('%d/%m/%Y') }}
+        {% else %}
+          —
+        {% endif %}
+      </strong>
+    </article>
+    <article class="stat-card">
+      <p>Instrumentos já utilizados</p>
+      <strong style="font-size:1rem">{{ assessment_summary.instruments_used|length }}</strong>
+    </article>
+  </section>
+
+  {% if assessment_summary.instruments_used %}
+    <section class="panel-card">
+      <h3>Instrumentos já utilizados neste {{ subject_label|lower }}</h3>
+      <p class="muted">{{ assessment_summary.instruments_used|join(' · ') }}</p>
+    </section>
+  {% endif %}
+
+  <div class="panel-toolbar">
+    <p class="muted">Histórico longitudinal — novas avaliações não substituem as anteriores.</p>
+    <a class="btn btn--primary" href="{{ url_for('assessment.patient_assessment_new', patient_id=patient.id) }}">+ Nova avaliação</a>
+  </div>
+
+  <section class="panel-card">
+    {% if assessment_rows %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Motivo</th>
+              <th>Instrumentos</th>
+              <th>Estado</th>
+              <th>Profissional</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in assessment_rows %}
+              {% set a = row.assessment %}
+              <tr>
+                <td>{{ a.assessment_date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ a.reason or '—' }}</td>
+                <td>{{ row.instrument_count }} · {{ row.instrument_names }}</td>
+                <td>{{ status_labels.get(a.status, a.status) }}</td>
+                <td>{{ a.professional.name if a.professional else '—' }}</td>
+                <td>
+                  <a href="{{ url_for('assessment.patient_assessment_view', patient_id=patient.id, assessment_id=a.id) }}">Ver</a>
+                  {% if a.status == 'draft' %}
+                    · <a href="{{ url_for('assessment.patient_assessment_edit', patient_id=patient.id, assessment_id=a.id) }}">Continuar</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="muted">Ainda sem avaliações para este {{ subject_label|lower }}.</p>
+    {% endif %}
+  </section>
+{% elif tab == 'anamnesis' %}
+  <section class="panel-stats">
+    <article class="stat-card"><p>Anamneses realizadas</p><strong>{{ anamnesis_summary.total }}</strong></article>
+    <article class="stat-card"><p>Em andamento</p><strong>{{ anamnesis_summary.draft }}</strong></article>
+    <article class="stat-card"><p>Concluídas</p><strong>{{ anamnesis_summary.completed }}</strong></article>
+    <article class="stat-card">
+      <p>Última anamnese</p>
+      <strong style="font-size:1rem">
+        {% if anamnesis_summary.last %}
+          {{ anamnesis_summary.last.started_at.strftime('%d/%m/%Y') }}
+        {% else %}
+          —
+        {% endif %}
+      </strong>
+    </article>
+  </section>
+
+  <div class="panel-toolbar">
+    <p class="muted">Histórico longitudinal — novas anamneses não substituem as anteriores.</p>
+    <a class="btn btn--primary" href="{{ url_for('anamnesis.patient_anamnesis_new', patient_id=patient.id) }}">+ Nova anamnese</a>
+  </div>
+
+  <section class="panel-card">
+    {% if anamneses %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Modelo</th>
+              <th>Estado</th>
+              <th>Profissional</th>
+              <th>Última atualização</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in anamneses %}
+              <tr>
+                <td>{{ a.started_at.strftime('%d/%m/%Y') if a.started_at else '—' }}</td>
+                <td>{{ a.template.name if a.template else '—' }}</td>
+                <td>{{ status_labels.get(a.status, a.status) }}</td>
+                <td>{{ a.professional.name if a.professional else '—' }}</td>
+                <td>{{ a.updated_at.strftime('%d/%m/%Y %H:%M') if a.updated_at else '—' }}</td>
+                <td>
+                  <a href="{{ url_for('anamnesis.patient_anamnesis_view', patient_id=patient.id, anamnesis_id=a.id) }}">Ver</a>
+                  {% if a.status == 'draft' %}
+                    · <a href="{{ url_for('anamnesis.patient_anamnesis_edit', patient_id=patient.id, anamnesis_id=a.id) }}">Continuar</a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <p class="muted">Ainda sem anamneses para este {{ subject_label|lower }}.</p>
+    {% endif %}
+  </section>
+{% elif tab == 'instruments' %}
+  <section class="panel-card">
+    <h3>Instrumentos no prontuário</h3>
+    <p class="muted">
+      O catálogo guarda metadados. Os resultados aplicados aparecem nas avaliações do {{ subject_label|lower }}.
+    </p>
+    {% if assessment_summary.instruments_used %}
+      <p><strong>Já utilizados:</strong> {{ assessment_summary.instruments_used|join(' · ') }}</p>
+    {% else %}
+      <p class="muted">Ainda sem instrumentos aplicados neste {{ subject_label|lower }}.</p>
+    {% endif %}
+    <p>
+      <a href="{{ url_for('assessment.instruments_list') }}">Abrir catálogo</a>
+      ·
+      <a href="{{ url_for('assessment.patient_assessment_new', patient_id=patient.id) }}">Nova avaliação</a>
+    </p>
+  </section>
+{% else %}
+  <section class="panel-card">
+    <h3>{{ tab|replace('_', ' ')|title }}</h3>
+    <p class="muted">
+      Secção do prontuário longitudinal. O conteúdo entra na sequência temporal
+      sem sobrescrever histórico anterior.
+    </p>
+  </section>
+{% endif %}
+{% endblock %}

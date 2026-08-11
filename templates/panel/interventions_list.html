@@ -1,0 +1,43 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Intervenção — {{ patient.name }}{% endblock %}
+{% block page_title %}Planos de intervenção{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }}</p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">{{ ui_hints.emphasis }}</p>
+    </div>
+    <div class="table-actions">
+      <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id) }}">Ficha</a>
+      <a class="btn btn--primary" href="{{ url_for('intervention.interventions_new', patient_id=patient.id) }}">+ Novo plano</a>
+    </div>
+  </div>
+</section>
+
+<section class="panel-card">
+  <p class="muted">Objetivos e estratégias definidos pelo profissional — sem geração automática.</p>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Título</th><th>Estado</th><th>Início</th><th>Revisão</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in plans %}
+          <tr>
+            <td>{{ p.title }}</td>
+            <td>{{ status_labels.get(p.status, p.status) }}</td>
+            <td>{{ p.start_date.strftime('%d/%m/%Y') if p.start_date else '—' }}</td>
+            <td>{{ p.review_date.strftime('%d/%m/%Y') if p.review_date else '—' }}</td>
+            <td><a href="{{ url_for('intervention.interventions_edit', patient_id=patient.id, plan_id=p.id) }}">Abrir</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5">Ainda sem planos de intervenção.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

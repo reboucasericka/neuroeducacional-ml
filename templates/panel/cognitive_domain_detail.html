@@ -1,0 +1,63 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{{ domain.name }} — {{ patient.name }}{% endblock %}
+{% block page_title %}{{ domain.name }}{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }} · Domínio</p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">{{ patient.age_years }} anos · {{ sex_labels.get(patient.sex, patient.sex) }}</p>
+    </div>
+    <a class="btn btn--ghost" href="{{ url_for('cognitive.cognitive_profile', patient_id=patient.id) }}">Voltar ao perfil</a>
+  </div>
+</section>
+
+{% for row in rows %}
+  <section class="panel-card">
+    <h3>{{ row.skill.name if row.skill else 'Sem habilidade associada' }}</h3>
+    {% if row.evolution %}
+      <div class="evolution-strip">
+        <p class="muted">Evolução (mesma métrica e unidade — sem normalização cruzada):</p>
+        <ul class="evolution-list">
+          {% for point in row.evolution %}
+            <li>
+              <time>{{ point.date.strftime('%b/%Y') if point.date else '—' }}</time>
+              <strong>{{ point.value }}{% if point.unit %} {{ point.unit }}{% endif %}</strong>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    {% if row.indicators %}
+      {% for ind in row.indicators %}
+        <article class="indicator-history">
+          <header>
+            <time>{{ ind.recorded_at.strftime('%d/%m/%Y') if ind.recorded_at else '—' }}</time>
+            <strong>{{ source_label(ind) }}</strong>
+          </header>
+          <dl class="readonly-dl">
+            <div><dt>Etiqueta</dt><dd>{{ ind.label }}</dd></div>
+            <div>
+              <dt>Resultado</dt>
+              <dd>
+                {% if ind.value_numeric is not none %}{{ ind.value_numeric }}{% elif ind.value_text %}{{ ind.value_text }}{% else %}—{% endif %}
+                {% if ind.unit %} {{ ind.unit }}{% endif %}
+              </dd>
+            </div>
+            <div><dt>Profissional</dt><dd>{{ ind.professional.name if ind.professional else '—' }}</dd></div>
+            <div><dt>Interpretação profissional</dt><dd>{{ ind.interpretation or '—' }}</dd></div>
+            <div><dt>Origem</dt><dd>{{ ind.source_type }}</dd></div>
+          </dl>
+        </article>
+      {% endfor %}
+    {% else %}
+      <p class="muted">Sem indicadores para esta habilidade.</p>
+    {% endif %}
+  </section>
+{% else %}
+  <section class="panel-card"><p class="muted">Sem dados neste domínio.</p></section>
+{% endfor %}
+{% endblock %}

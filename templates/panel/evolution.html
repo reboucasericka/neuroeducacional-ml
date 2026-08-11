@@ -1,0 +1,98 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Evolução — {{ patient.name }}{% endblock %}
+{% block page_title %}Evolução longitudinal{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }}</p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">{{ ui_hints.emphasis }} Avaliação qualitativa do profissional — sem percentagens arbitrárias.</p>
+    </div>
+    <div class="table-actions">
+      <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id) }}">Ficha</a>
+      <a class="btn btn--primary" href="{{ url_for('intervention.progress_notes_new', patient_id=patient.id) }}">+ Evolução</a>
+    </div>
+  </div>
+</section>
+
+<div class="panel-two">
+  <section class="panel-card">
+    <h3>Planos de intervenção</h3>
+    <ul class="panel-list">
+      {% for p in plans %}
+        <li>
+          <a href="{{ url_for('intervention.interventions_edit', patient_id=patient.id, plan_id=p.id) }}">
+            <strong>{{ p.title }}</strong>
+            <span>{{ plan_status_labels.get(p.status, p.status) }}</span>
+          </a>
+        </li>
+      {% else %}
+        <li class="muted">—</li>
+      {% endfor %}
+    </ul>
+  </section>
+  <section class="panel-card">
+    <h3>Reavaliações / seguimento</h3>
+    <ul class="panel-list">
+      {% for a in reassessments %}
+        <li>
+          <strong>{{ a.assessment_date.strftime('%d/%m/%Y') }}</strong>
+          <span>{{ assessment_types.get(a.assessment_type, a.assessment_type) }} · {{ a.reason or '—' }}</span>
+        </li>
+      {% else %}
+        <li class="muted">Sem reavaliações marcadas como follow-up/reevaluation.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+
+<section class="panel-card">
+  <h3>Registos de evolução</h3>
+  {% for n in notes %}
+    <article style="margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border-soft)">
+      <p class="muted">{{ n.recorded_at.strftime('%d/%m/%Y %H:%M') if n.recorded_at else '—' }} · {{ progress_labels.get(n.progress_status, n.progress_status) }}</p>
+      {% if n.summary %}<p>{{ n.summary }}</p>{% endif %}
+      {% if n.evidence %}<p><strong>Evidência:</strong> {{ n.evidence }}</p>{% endif %}
+      {% if n.professional_interpretation %}<p><strong>Interpretação:</strong> {{ n.professional_interpretation }}</p>{% endif %}
+      {% if n.next_step %}<p><strong>Próximo passo:</strong> {{ n.next_step }}</p>{% endif %}
+      {% for m in n.measures %}
+        <p class="muted">Medida: {{ m.label }}{% if m.value_numeric is not none %} = {{ m.value_numeric }}{% endif %}{% if m.unit %} {{ m.unit }}{% endif %}{% if m.scale_reference %} ({{ m.scale_reference }}){% endif %}</p>
+      {% endfor %}
+    </article>
+  {% else %}
+    <p class="muted">Ainda sem evoluções.</p>
+  {% endfor %}
+</section>
+
+<section class="panel-card">
+  <h3>Sessões de intervenção</h3>
+  <ul class="panel-list">
+    {% for s in intervention_sessions %}
+      <li>
+        <a href="{{ url_for('care.sessions_view', patient_id=patient.id, session_id=s.id) }}">
+          <strong>{{ s.session_date.strftime('%d/%m/%Y') }}</strong>
+          <span>{{ s.status }}{% if s.summary %} · {{ s.summary[:80] }}{% endif %}</span>
+        </a>
+      </li>
+    {% else %}
+      <li class="muted">—</li>
+    {% endfor %}
+  </ul>
+</section>
+
+<section class="panel-card">
+  <h3>Indicadores cognitivos recentes</h3>
+  <p class="muted">Comparar apenas medidas compatíveis (mesmo rótulo/unidade/escala) no perfil.</p>
+  <ul>
+    {% for i in indicators %}
+      <li>{{ i.recorded_at.strftime('%d/%m/%Y') if i.recorded_at else '—' }} · {{ i.label }}
+        {% if i.value_text %} · {{ i.value_text }}{% elif i.value_numeric is not none %} · {{ i.value_numeric }}{% if i.unit %} {{ i.unit }}{% endif %}{% endif %}
+      </li>
+    {% else %}
+      <li class="muted">—</li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

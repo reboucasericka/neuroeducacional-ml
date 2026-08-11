@@ -1,0 +1,76 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Mappings instrumento → habilidade{% endblock %}
+{% block page_title %}Mappings cognitivos{% endblock %}
+
+{% block panel_content %}
+<p class="muted">Associações configuráveis de catálogo. Não geram scoring automático.</p>
+
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <input type="hidden" name="action" value="create" />
+  <label class="field">
+    <span>Instrumento *</span>
+    <select name="instrument_id" required>
+      <option value="">—</option>
+      {% for i in instruments %}<option value="{{ i.id }}">{{ i.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Domínio *</span>
+    <select name="domain_id" required>
+      <option value="">—</option>
+      {% for d in domains %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Habilidade</span>
+    <select name="skill_id">
+      <option value="">—</option>
+      {% for s in skills %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="field field--full">
+    <span>Notas</span>
+    <input name="notes" />
+  </label>
+  <div class="form-actions">
+    <button class="btn btn--primary" type="submit">Adicionar mapping</button>
+  </div>
+</form>
+
+<section class="panel-card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Instrumento</th>
+          <th>Domínio</th>
+          <th>Habilidade</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in mappings %}
+          <tr>
+            <td>{{ m.instrument.name if m.instrument else '—' }}</td>
+            <td>{{ m.domain.name if m.domain else '—' }}</td>
+            <td>{{ m.skill.name if m.skill else '—' }}</td>
+            <td>{% if m.is_active %}Ativo{% else %}Inativo{% endif %}</td>
+            <td>
+              <form method="post" style="display:inline">
+                {% include "partials/csrf_field.html" %}
+                <input type="hidden" name="action" value="toggle" />
+                <input type="hidden" name="mapping_id" value="{{ m.id }}" />
+                <button class="linkish" type="submit">{% if m.is_active %}Desativar{% else %}Ativar{% endif %}</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5">Sem mappings.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,95 @@
+:root {
+  /* Paleta principal */
+  --rose: #edb6b6;
+  --sage: #b5c9bc;
+  --sky: #aad5e9;
+  --lilac: #d7b0d1;
+
+  /* Tons derivados */
+  --rose-deep: #d49a9a;
+  --sage-deep: #8fa99a;
+  --sky-deep: #7eb8d4;
+  --lilac-deep: #c090b8;
+
+  /* Neutros */
+  --cream: #f7f3ee;
+  --cream-deep: #efe8df;
+  --surface: #fbf9f6;
+  --white: #ffffff;
+  --charcoal: #2c2a28;
+  --text: #3a3734;
+  --muted-text: #6e6862;
+  --border-soft: rgba(44, 42, 40, 0.1);
+
+  /* Dourado champagne (detalhe premium) */
+  --gold-soft: #c4a574;
+  --gold-light: #e8d5b5;
+  --gold-deep: #a8895a;
+  --gold-gradient: linear-gradient(
+    135deg,
+    #e8d5b5 0%,
+    #c4a574 50%,
+    #a8895a 100%
+  );
+
+  /* Superfícies com toque de cor */
+  --bg-page: var(--cream);
+  --bg-elevated: var(--white);
+  --bg-soft-rose: color-mix(in srgb, var(--rose) 18%, var(--cream));
+  --bg-soft-sage: color-mix(in srgb, var(--sage) 22%, var(--cream));
+  --bg-soft-sky: color-mix(in srgb, var(--sky) 22%, var(--cream));
+  --bg-soft-lilac: color-mix(in srgb, var(--lilac) 18%, var(--cream));
+
+  /* Tipografia */
+  --font-display: "Fraunces", "Georgia", "Times New Roman", serif;
+  --font-body: "Outfit", "Segoe UI", system-ui, sans-serif;
+
+  --fs-eyebrow: 0.72rem;
+  --fs-caption: 0.8rem;
+  --fs-body: 1.05rem;
+  --fs-h3: clamp(1.15rem, 1.5vw, 1.35rem);
+  --fs-h2: clamp(1.75rem, 3.2vw, 2.6rem);
+  --fs-h1: clamp(2.35rem, 5vw, 3.75rem);
+  --fs-metric: clamp(1.5rem, 2.5vw, 2rem);
+
+  --lh-tight: 1.15;
+  --lh-snug: 1.35;
+  --lh-body: 1.65;
+
+  /* Espaçamento */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --space-9: 6.5rem;
+  --space-10: 9rem;
+
+  --section-pad-y: clamp(4.5rem, 10vw, 7.5rem);
+  --container: min(1120px, calc(100% - 2.5rem));
+  --container-wide: min(1240px, calc(100% - 2.5rem));
+
+  /* Forma */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.9rem;
+  --radius-lg: 1.4rem;
+  --radius-xl: 2rem;
+  --radius-pill: 999px;
+
+  /* Sombra (discreta) */
+  --shadow-soft: 0 10px 30px rgba(44, 42, 40, 0.06);
+  --shadow-float: 0 18px 40px rgba(44, 42, 40, 0.08);
+  --shadow-header: 0 8px 24px rgba(44, 42, 40, 0.05);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-med: 320ms;
+  --dur-slow: 700ms;
+
+  /* Header */
+  --header-h: 4.25rem;
+}

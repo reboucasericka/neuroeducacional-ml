@@ -1,0 +1,44 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Encaminhamentos — {{ patient.name }}{% endblock %}
+{% block page_title %}Encaminhamentos{% endblock %}
+
+{% block panel_content %}
+<p class="muted">Encaminhamentos decididos pelo profissional — sem geração automática.</p>
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <label class="field">
+    <span>Especialidade *</span>
+    <select name="specialty" required>
+      {% for s in specialties %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="field"><span>Data</span><input type="date" name="referral_date" /></label>
+  <label class="field">
+    <span>Estado</span>
+    <select name="status">{% for k,l in statuses %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select>
+  </label>
+  <label class="field"><span>Profissional/serviço</span><input name="professional_or_service" /></label>
+  <label class="field field--full"><span>Motivo</span><textarea name="reason" rows="2"></textarea></label>
+  <label class="field field--full"><span>Notas</span><textarea name="notes" rows="2"></textarea></label>
+  <div class="form-actions"><button class="btn btn--primary" type="submit">Registar</button></div>
+</form>
+<section class="panel-card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Data</th><th>Especialidade</th><th>Estado</th><th>Motivo</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.referral_date.strftime('%d/%m/%Y') }}</td>
+            <td>{{ r.specialty }}</td>
+            <td>{{ status_labels.get(r.status, r.status) }}</td>
+            <td>{{ (r.reason or '—')[:100] }}</td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4">Sem encaminhamentos.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

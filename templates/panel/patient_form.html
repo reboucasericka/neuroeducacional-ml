@@ -1,0 +1,83 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Novo {{ subject_label|lower }} — NeuroLearn{% endblock %}
+{% block page_title %}Novo {{ subject_label|lower }}{% endblock %}
+
+{% block panel_content %}
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <label class="field">
+    <span>Código interno *</span>
+    <input name="internal_code" required value="{{ form.get('internal_code', '') }}" placeholder="P-0001" />
+  </label>
+  <label class="field">
+    <span>Nome *</span>
+    <input name="name" required value="{{ form.get('name', '') }}" />
+  </label>
+  <label class="field">
+    <span>Data de nascimento *</span>
+    <input type="date" name="birth_date" required value="{{ form.get('birth_date', '') }}" />
+  </label>
+  <label class="field">
+    <span>Sexo *</span>
+    <select name="sex">
+      {% for value, label in sex_choices %}
+        <option value="{{ value }}" {% if form.get('sex') == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Género (opcional)</span>
+    <input name="gender" value="{{ form.get('gender', '') }}" />
+  </label>
+  <label class="field">
+    <span>Escolaridade</span>
+    <input name="education_level" value="{{ form.get('education_level', '') }}" />
+  </label>
+  <label class="field">
+    <span>Profissão (se adulto)</span>
+    <input name="occupation" value="{{ form.get('occupation', '') }}" />
+  </label>
+  <label class="field">
+    <span>Telefone</span>
+    <input name="contact_phone" value="{{ form.get('contact_phone', '') }}" />
+  </label>
+  <label class="field">
+    <span>Email</span>
+    <input type="email" name="contact_email" value="{{ form.get('contact_email', '') }}" />
+  </label>
+  <label class="field field--check">
+    <input type="checkbox" name="is_minor" {% if form.get('is_minor') %}checked{% endif %} />
+    <span>{{ subject_label }} menor de idade (requer responsável)</span>
+  </label>
+
+  <fieldset class="form-fieldset">
+    <legend>Responsável legal (se menor)</legend>
+    <label class="field">
+      <span>Nome do responsável</span>
+      <input name="guardian_name" value="{{ form.get('guardian_name', '') }}" />
+    </label>
+    <label class="field">
+      <span>Parentesco</span>
+      <input name="guardian_relationship" value="{{ form.get('guardian_relationship', '') }}" />
+    </label>
+    <label class="field">
+      <span>Telefone</span>
+      <input name="guardian_phone" value="{{ form.get('guardian_phone', '') }}" />
+    </label>
+    <label class="field">
+      <span>Email</span>
+      <input type="email" name="guardian_email" value="{{ form.get('guardian_email', '') }}" />
+    </label>
+  </fieldset>
+
+  <label class="field field--full">
+    <span>Notas</span>
+    <textarea name="notes" rows="3">{{ form.get('notes', '') }}</textarea>
+  </label>
+
+  <div class="form-actions">
+    <a class="btn btn--ghost" href="{{ url_for('panel.patients_list') }}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">Guardar {{ subject_label|lower }}</button>
+  </div>
+</form>
+{% endblock %}

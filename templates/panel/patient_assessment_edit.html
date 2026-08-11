@@ -1,0 +1,204 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Avaliação — {{ patient.name }}{% endblock %}
+{% block page_title %}Registar resultados{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }} · {{ status_labels.get(assessment.status, assessment.status) }}</p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">
+        {{ patient.age_years }} anos · Sexo: {{ patient.sex }}
+        {% if patient.education_level %} · Escolaridade: {{ patient.education_level }}{% endif %}
+      </p>
+    </div>
+    <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='assessments') }}">Histórico</a>
+  </div>
+</section>
+
+{% if assessment.status == 'completed' %}
+  <section class="panel-card">
+    <p>Esta avaliação está concluída (readonly). Para editar, reabra explicitamente como rascunho.</p>
+    <form method="post">
+      {% include "partials/csrf_field.html" %}
+      <input type="hidden" name="action" value="reopen" />
+      <button class="btn btn--primary" type="submit">Reabrir como rascunho</button>
+    </form>
+  </section>
+{% else %}
+<form method="post" class="anamnesis-form">
+  {% include "partials/csrf_field.html" %}
+  <section class="panel-card form-grid">
+    <label class="field field--full">
+      <span>Motivo da avaliação *</span>
+      <input name="reason" required value="{{ assessment.reason or '' }}" />
+    </label>
+    <label class="field">
+      <span>Data *</span>
+      <input type="date" name="assessment_date" required value="{{ assessment.assessment_date.strftime('%Y-%m-%d') }}" />
+    </label>
+    <label class="field field--full">
+      <span>Notas gerais</span>
+      <textarea name="general_notes" rows="2">{{ assessment.general_notes or '' }}</textarea>
+    </label>
+  </section>
+
+  {% for row in item_rows %}
+    {% set item = row.item %}
+    <section class="panel-card">
+      <div class="panel-card__head">
+        <h3>{{ item.display_name }}{% if item.display_short_name %} <span class="pill">{{ item.display_short_name }}</span>{% endif %}</h3>
+        <span class="muted">{{ item.instrument.category if item.instrument else '—' }}</span>
+      </div>
+      <p class="manual-result-badge">Resultado informado pelo profissional.</p>
+
+      <div class="form-grid">
+        <label class="field">
+          <span>Estado</span>
+          <select name="ai_{{ item.id }}_status">
+            {% for key, label in ai_status_labels.items() %}
+              <option value="{{ key }}" {% if item.status == key %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label class="field">
+          <span>Resultado bruto</span>
+          <input name="ai_{{ item.id }}_raw_score" value="{{ item.raw_score if item.raw_score is not none else '' }}" />
+        </label>
+        <label class="field">
+          <span>Resultado padronizado</span>
+          <input name="ai_{{ item.id }}_standard_score" value="{{ item.standard_score if item.standard_score is not none else '' }}" />
+        </label>
+        <label class="field">
+          <span>Classificação</span>
+          <input name="ai_{{ item.id }}_classification" value="{{ item.classification or '' }}" />
+        </label>
+        <label class="field field--full">
+          <span>Interpretação profissional</span>
+          <textarea name="ai_{{ item.id }}_professional_interpretation" rows="2">{{ item.professional_interpretation or '' }}</textarea>
+        </label>
+        <label class="field field--full">
+          <span>Observações</span>
+          <textarea name="ai_{{ item.id }}_notes" rows="2">{{ item.notes or '' }}</textarea>
+        </label>
+      </div>
+
+      <h4 class="section-title">Métricas adicionais (opcional)</h4>
+      <p class="muted">Ex.: tempo, erros, interferência — registo manual, sem cálculo automático.</p>
+      {% for result in row.metrics %}
+        <div class="form-grid metric-row">
+          <label class="field">
+            <span>Métrica</span>
+            <input name="metric_{{ result.id }}_metric_name" value="{{ result.metric_name }}" />
+          </label>
+          <label class="field">
+            <span>Valor bruto</span>
+            <input name="metric_{{ result.id }}_raw_value" value="{{ result.raw_value or '' }}" />
+          </label>
+          <label class="field">
+            <span>Valor normalizado</span>
+            <input name="metric_{{ result.id }}_normalized_value" value="{{ result.normalized_value or '' }}" />
+          </label>
+          <label class="field">
+            <span>Unidade</span>
+            <input name="metric_{{ result.id }}_unit" value="{{ result.unit or '' }}" />
+          </label>
+          <label class="field field--full">
+            <span>Interpretação</span>
+            <input name="metric_{{ result.id }}_interpretation" value="{{ result.interpretation or '' }}" />
+          </label>
+          <div class="field field--full profile-link-box">
+            <label class="field--check">
+              <input type="checkbox" name="metric_{{ result.id }}_link_profile"
+                {% if row.indicator_map.get(result.id) %}checked{% endif %} />
+              <span>Associar ao Perfil Cognitivo</span>
+            </label>
+            <p class="muted">Usa este resultado como indicador (sem normalização automática).</p>
+            <div class="form-grid">
+              <label class="field">
+                <span>Domínio</span>
+                <select name="metric_{{ result.id }}_domain_id">
+                  <option value="">—</option>
+                  {% for d in domains %}
+                    <option value="{{ d.id }}"
+                      {% if row.indicator_map.get(result.id) and row.indicator_map.get(result.id).domain_id == d.id %}selected{% endif %}>
+                      {{ d.name }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </label>
+              <label class="field">
+                <span>Habilidade</span>
+                <select name="metric_{{ result.id }}_skill_id">
+                  <option value="">—</option>
+                  {% for s in skills %}
+                    <option value="{{ s.id }}" data-domain="{{ s.domain_id }}"
+                      {% if row.indicator_map.get(result.id) and row.indicator_map.get(result.id).skill_id == s.id %}selected{% endif %}>
+                      {{ s.name }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </label>
+            </div>
+          </div>
+          <label class="field--check">
+            <input type="checkbox" name="metric_{{ result.id }}_delete" />
+            <span>Remover métrica</span>
+          </label>
+        </div>
+      {% endfor %}
+      <div class="form-grid metric-row">
+        <label class="field">
+          <span>Nova métrica</span>
+          <input name="new_metric_{{ item.id }}_metric_name" placeholder="ex.: tempo" />
+        </label>
+        <label class="field">
+          <span>Valor bruto</span>
+          <input name="new_metric_{{ item.id }}_raw_value" />
+        </label>
+        <label class="field">
+          <span>Valor normalizado</span>
+          <input name="new_metric_{{ item.id }}_normalized_value" />
+        </label>
+        <label class="field">
+          <span>Unidade</span>
+          <input name="new_metric_{{ item.id }}_unit" placeholder="ex.: s" />
+        </label>
+        <label class="field field--full">
+          <span>Interpretação</span>
+          <input name="new_metric_{{ item.id }}_interpretation" />
+        </label>
+        <div class="field field--full profile-link-box">
+          <label class="field--check">
+            <input type="checkbox" name="new_metric_{{ item.id }}_link_profile" />
+            <span>Associar ao Perfil Cognitivo</span>
+          </label>
+          <div class="form-grid">
+            <label class="field">
+              <span>Domínio</span>
+              <select name="new_metric_{{ item.id }}_domain_id">
+                <option value="">—</option>
+                {% for d in domains %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+              </select>
+            </label>
+            <label class="field">
+              <span>Habilidade</span>
+              <select name="new_metric_{{ item.id }}_skill_id">
+                <option value="">—</option>
+                {% for s in skills %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+    </section>
+  {% endfor %}
+
+  <div class="form-actions">
+    <button class="btn btn--ghost" type="submit" name="action" value="draft">Guardar rascunho</button>
+    <button class="btn btn--primary" type="submit" name="action" value="complete">Concluir avaliação</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

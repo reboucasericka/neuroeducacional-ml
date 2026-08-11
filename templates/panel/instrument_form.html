@@ -1,0 +1,76 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{% if mode == 'new' %}Novo instrumento{% else %}Editar instrumento{% endif %} — NeuroLearn{% endblock %}
+{% block page_title %}{% if mode == 'new' %}Novo instrumento{% else %}Editar instrumento{% endif %}{% endblock %}
+
+{% block panel_content %}
+<p class="muted panel-notice">Catálogo apenas — não introduza itens, normas ou scoring. Se a licença for desconhecida, mantenha “Desconhecido”.</p>
+
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <label class="field">
+    <span>Nome *</span>
+    <input name="name" required value="{{ form.get('name', '') }}" />
+  </label>
+  <label class="field">
+    <span>Sigla</span>
+    <input name="short_name" value="{{ form.get('short_name', '') }}" />
+  </label>
+  <label class="field">
+    <span>Slug</span>
+    <input name="slug" value="{{ form.get('slug', '') }}" placeholder="gerado automaticamente se vazio" />
+  </label>
+  <label class="field">
+    <span>Categoria</span>
+    <select name="category">
+      {% for c in categories %}
+        <option value="{{ c }}" {% if form.get('category') == c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>População-alvo</span>
+    <select name="target_population">
+      <option value="">—</option>
+      {% for value, label in populations %}
+        <option value="{{ value }}" {% if form.get('target_population') == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Licença / status de utilização</span>
+    <select name="license_status">
+      {% for value, label in license_statuses %}
+        <option value="{{ value }}" {% if form.get('license_status', 'unknown') == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Idade mínima</span>
+    <input type="number" name="minimum_age" value="{{ form.get('minimum_age', '') }}" />
+  </label>
+  <label class="field">
+    <span>Idade máxima</span>
+    <input type="number" name="maximum_age" value="{{ form.get('maximum_age', '') }}" />
+  </label>
+  <label class="field field--full">
+    <span>Objetivo</span>
+    <input name="purpose" value="{{ form.get('purpose', '') }}" />
+  </label>
+  <label class="field field--full">
+    <span>Descrição</span>
+    <textarea name="description" rows="3">{{ form.get('description', '') }}</textarea>
+  </label>
+  <label class="field field--full">
+    <span>Referência</span>
+    <input name="reference" value="{{ form.get('reference', '') }}" />
+  </label>
+  <label class="field field--full">
+    <span>Notas</span>
+    <textarea name="notes" rows="2">{{ form.get('notes', '') }}</textarea>
+  </label>
+  <div class="form-actions">
+    <a class="btn btn--ghost" href="{{ url_for('assessment.instruments_list') }}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">Guardar</button>
+  </div>
+</form>
+{% endblock %}

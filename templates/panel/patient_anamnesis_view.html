@@ -1,0 +1,48 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Anamnese — {{ patient.name }}{% endblock %}
+{% block page_title %}Anamnese concluída{% endblock %}
+
+{% block panel_content %}
+<section class="panel-card readonly-header">
+  <p class="eyebrow">{{ status_labels.get(anamnesis.status, anamnesis.status) }} · {{ anamnesis.template.name }}</p>
+  <h2>{{ patient.name }}</h2>
+  <ul class="kv-list">
+    <li><span>Código</span><strong>{{ patient.internal_code }}</strong></li>
+    <li><span>Idade</span><strong>{{ patient.age_years }}</strong></li>
+    <li><span>Sexo</span><strong>{{ patient.sex }}</strong></li>
+    <li><span>Escolaridade</span><strong>{{ patient.education_level or '—' }}</strong></li>
+    <li><span>Profissional</span><strong>{{ anamnesis.professional.name if anamnesis.professional else current_user.name }}</strong></li>
+    <li><span>Início</span><strong>{{ anamnesis.started_at.strftime('%d/%m/%Y %H:%M') if anamnesis.started_at else '—' }}</strong></li>
+    <li><span>Conclusão</span><strong>{{ anamnesis.completed_at.strftime('%d/%m/%Y %H:%M') if anamnesis.completed_at else '—' }}</strong></li>
+  </ul>
+  <div class="form-actions" style="justify-content:flex-start;margin-top:1rem">
+    <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='anamnesis') }}">Voltar ao histórico</a>
+    {% if anamnesis.status == 'completed' %}
+      <a class="btn btn--primary" href="{{ url_for('anamnesis.patient_anamnesis_edit', patient_id=patient.id, anamnesis_id=anamnesis.id) }}">Gerir / reabrir</a>
+    {% else %}
+      <a class="btn btn--primary" href="{{ url_for('anamnesis.patient_anamnesis_edit', patient_id=patient.id, anamnesis_id=anamnesis.id) }}">Continuar preenchimento</a>
+    {% endif %}
+  </div>
+</section>
+
+{% for section, section_fields in grouped.items() %}
+  <section class="panel-card readonly-section">
+    <h3>{{ section }}</h3>
+    <dl class="readonly-dl">
+      {% for field in section_fields %}
+        <div>
+          <dt>{{ field.label }}</dt>
+          <dd>{{ display_response_value(field, values.get(field.id)) }}</dd>
+        </div>
+      {% endfor %}
+    </dl>
+  </section>
+{% endfor %}
+
+{% if anamnesis.notes %}
+<section class="panel-card">
+  <h3>Notas</h3>
+  <p>{{ anamnesis.notes }}</p>
+</section>
+{% endif %}
+{% endblock %}

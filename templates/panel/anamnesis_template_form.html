@@ -1,0 +1,33 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{% if mode == 'new' %}Novo modelo{% else %}Editar modelo{% endif %} — NeuroLearn{% endblock %}
+{% block page_title %}{% if mode == 'new' %}Novo modelo de anamnese{% else %}Editar modelo{% endif %}{% endblock %}
+
+{% block panel_content %}
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <label class="field">
+    <span>Nome *</span>
+    <input name="name" required value="{{ form.get('name', '') }}" />
+  </label>
+  <label class="field">
+    <span>Slug</span>
+    <input name="slug" value="{{ form.get('slug', '') }}" placeholder="gerado automaticamente se vazio" />
+  </label>
+  <label class="field">
+    <span>Categoria</span>
+    <input name="category" value="{{ form.get('category', 'geral') }}" />
+  </label>
+  <label class="field">
+    <span>População-alvo</span>
+    <input name="target_population" value="{{ form.get('target_population', '') }}" />
+  </label>
+  <label class="field field--full">
+    <span>Descrição</span>
+    <textarea name="description" rows="3">{{ form.get('description', '') }}</textarea>
+  </label>
+  <div class="form-actions">
+    <a class="btn btn--ghost" href="{{ url_for('anamnesis.templates_list') }}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">Guardar</button>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Nova avaliação — {{ patient.name }}{% endblock %}
+{% block page_title %}Nova avaliação{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }}</p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">
+        {{ patient.age_years }} anos · Sexo: {{ patient.sex }}
+        {% if patient.education_level %} · Escolaridade: {{ patient.education_level }}{% endif %}
+      </p>
+    </div>
+    <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='assessments') }}">Histórico</a>
+  </div>
+</section>
+
+<form method="post" class="anamnesis-form">
+  {% include "partials/csrf_field.html" %}
+  <section class="panel-card form-grid">
+    <label class="field field--full">
+      <span>Motivo da avaliação *</span>
+      <input name="reason" required value="{{ form.get('reason', '') }}" />
+    </label>
+    <label class="field">
+      <span>Data *</span>
+      <input type="date" name="assessment_date" required value="{{ form.get('assessment_date', '') }}" />
+    </label>
+    <label class="field">
+      <span>Tipo de avaliação</span>
+      <select name="assessment_type">
+        <option value="initial" {% if form.get('assessment_type','initial') == 'initial' %}selected{% endif %}>Inicial</option>
+        <option value="follow_up" {% if form.get('assessment_type') == 'follow_up' %}selected{% endif %}>Seguimento</option>
+        <option value="reevaluation" {% if form.get('assessment_type') == 'reevaluation' %}selected{% endif %}>Reavaliação</option>
+      </select>
+    </label>
+    <label class="field field--full">
+      <span>Notas gerais</span>
+      <textarea name="general_notes" rows="2">{{ form.get('general_notes', '') }}</textarea>
+    </label>
+  </section>
+
+  <section class="panel-card">
+    <h3>Selecionar instrumentos</h3>
+    <p class="muted">Apenas instrumentos ativos. Alertas de idade são informativos — o profissional decide.</p>
+
+    <div class="panel-toolbar" style="margin:1rem 0">
+      <div class="panel-search">
+        <input form="" type="search" name="q" value="{{ q }}" placeholder="Pesquisar" id="filter-q" />
+      </div>
+      <select id="filter-category">
+        <option value="">Categoria</option>
+        {% for c in categories %}
+          <option value="{{ c }}" {% if category == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+      <select id="filter-population">
+        <option value="">População</option>
+        {% for value, label in populations %}
+          <option value="{{ value }}" {% if population == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn--ghost" type="button" id="apply-filters">Filtrar catálogo</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Nome</th>
+            <th>Categoria</th>
+            <th>População</th>
+            <th>Idade</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in catalog_rows %}
+            {% set inst = row.instrument %}
+            <tr>
+              <td>
+                <input
+                  type="checkbox"
+                  name="instrument_ids"
+                  value="{{ inst.id }}"
+                  {% if inst.id in selected_ids %}checked{% endif %}
+                />
+              </td>
+              <td>
+                <strong>{{ inst.name }}</strong>
+                {% if inst.short_name %}<span class="pill">{{ inst.short_name }}</span>{% endif %}
+                {% if row.age_warning %}
+                  <p class="age-warning">Faixa etária cadastrada do instrumento não corresponde à idade do paciente.</p>
+                {% endif %}
+              </td>
+              <td>{{ inst.category }}</td>
+              <td>{{ inst.target_population or '—' }}</td>
+              <td>
+                {{ inst.minimum_age if inst.minimum_age is not none else '—' }}–{{ inst.maximum_age if inst.maximum_age is not none else '—' }}
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="5">Nenhum instrumento ativo encontrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='assessments') }}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">Criar avaliação</button>
+  </div>
+</form>
+
+<script>
+  document.getElementById('apply-filters')?.addEventListener('click', function () {
+    const params = new URLSearchParams();
+    const q = document.getElementById('filter-q')?.value || '';
+    const category = document.getElementById('filter-category')?.value || '';
+    const population = document.getElementById('filter-population')?.value || '';
+    if (q) params.set('q', q);
+    if (category) params.set('category', category);
+    if (population) params.set('population', population);
+    const url = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    window.location = url;
+  });
+</script>
+{% endblock %}

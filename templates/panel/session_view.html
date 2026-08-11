@@ -1,0 +1,49 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Sessão — {{ patient.name }}{% endblock %}
+{% block page_title %}Sessão {{ session.session_date.strftime('%d/%m/%Y') }}{% endblock %}
+
+{% block panel_content %}
+<section class="panel-card">
+  <div class="panel-toolbar">
+    <p class="eyebrow">{{ patient.internal_code }} · {{ session_types.get(session.session_type, session.session_type) }} · {{ session_statuses.get(session.status, session.status) }}</p>
+    <a class="btn btn--primary" href="{{ url_for('care.sessions_edit', patient_id=patient.id, session_id=session.id) }}">Editar</a>
+  </div>
+  <dl class="readonly-dl">
+    <div><dt>Data</dt><dd>{{ session.session_date.strftime('%d/%m/%Y') }}{% if session.start_time %} · {{ session.start_time }}{% if session.end_time %}–{{ session.end_time }}{% endif %}{% endif %}</dd></div>
+    <div><dt>Participantes</dt><dd>{{ participants|join(', ') if participants else '—' }}</dd></div>
+    <div><dt>Objetivo</dt><dd>{{ session.objective or '—' }}</dd></div>
+    <div><dt>Resumo</dt><dd>{{ session.summary or '—' }}</dd></div>
+    <div><dt>Observações</dt><dd>{{ session.professional_notes or '—' }}</dd></div>
+    <div><dt>Potencialidades observadas</dt><dd>{{ session.strengths_observed or '—' }}</dd></div>
+    <div><dt>Estratégias facilitadoras</dt><dd>{{ session.facilitating_strategies or '—' }}</dd></div>
+    <div><dt>Próximos passos</dt><dd>{{ session.next_steps or '—' }}</dd></div>
+    <div><dt>Instrumento associado</dt><dd>{{ session.assessment_instrument.display_name if session.assessment_instrument else '—' }}</dd></div>
+  </dl>
+</section>
+
+<section class="panel-card">
+  <h3>Observações estruturadas</h3>
+  {% if observations %}
+    <ul class="panel-list">
+      {% for o in observations %}
+        <li><strong>{{ o.label }}</strong><span>{{ o.category }}{% if o.value %} · {{ o.value }}{% endif %}{% if o.notes %} — {{ o.notes }}{% endif %}</span></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Sem observações estruturadas.</p>
+  {% endif %}
+</section>
+
+<section class="panel-card">
+  <h3>Atividades não padronizadas</h3>
+  {% if activities %}
+    <ul class="panel-list">
+      {% for a in activities %}
+        <li><strong>{{ a.name }}</strong><span>{{ a.category }} · {{ a.observed_response or a.description or '—' }}</span></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Sem atividades registadas.</p>
+  {% endif %}
+</section>
+{% endblock %}

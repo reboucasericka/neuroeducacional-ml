@@ -1,0 +1,65 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Devolutiva — {{ patient.name }}{% endblock %}
+{% block page_title %}{{ report.title }}{% endblock %}
+
+{% block panel_content %}
+{% if print_mode %}
+<style>
+  @media print {
+    .panel-sidebar, .panel-topbar, .panel-flash, .no-print { display: none !important; }
+    .panel-shell { display: block; }
+    .panel-main { padding: 0; }
+    body { background: white; }
+  }
+</style>
+{% endif %}
+
+<section class="panel-card {% if print_mode %}print-report{% endif %}">
+  <div class="panel-toolbar no-print">
+    <p class="muted">{{ status_labels.get(report.status, report.status) }} · {{ report.feedback_date.strftime('%d/%m/%Y') }}</p>
+    <div class="table-actions">
+      <a class="btn btn--ghost" href="{{ url_for('intervention.feedbacks_view', patient_id=patient.id, feedback_id=report.id, print=1) }}">Vista impressão</a>
+      {% if report.status == 'completed' %}
+        <form method="post" action="{{ url_for('intervention.feedbacks_reopen', patient_id=patient.id, feedback_id=report.id) }}" style="display:inline">
+          {% include "partials/csrf_field.html" %}
+          <button class="btn btn--ghost" type="submit">Reabrir</button>
+        </form>
+      {% else %}
+        <a class="btn btn--primary" href="{{ url_for('intervention.feedbacks_edit', patient_id=patient.id, feedback_id=report.id) }}">Editar</a>
+      {% endif %}
+      <a class="btn btn--ghost" href="{{ url_for('intervention.feedbacks_list', patient_id=patient.id) }}">Lista</a>
+    </div>
+  </div>
+
+  <header class="print-header">
+    <p class="eyebrow">NeuroLearn Analytics · Devolutiva</p>
+    <h2>{{ report.title }}</h2>
+    <p class="muted">
+      {{ subject_label }}: {{ patient.name }} ({{ patient.internal_code }})
+      · Profissional: {{ current_user.name }}
+      · {{ professional_type_display }}
+      · Data: {{ report.feedback_date.strftime('%d/%m/%Y') }}
+    </p>
+  </header>
+
+  <dl class="readonly-dl">
+    {% if report.summary %}<div><dt>Síntese</dt><dd>{{ report.summary }}</dd></div>{% endif %}
+    {% if report.reason_for_assessment %}<div><dt>Motivo</dt><dd>{{ report.reason_for_assessment }}</dd></div>{% endif %}
+    {% if report.history_summary %}<div><dt>Histórico</dt><dd>{{ report.history_summary }}</dd></div>{% endif %}
+    {% if report.assessment_summary %}<div><dt>Avaliação</dt><dd>{{ report.assessment_summary }}</dd></div>{% endif %}
+    {% if report.strengths %}<div><dt>Potencialidades</dt><dd>{{ report.strengths }}</dd></div>{% endif %}
+    {% if report.resources_and_strategies %}<div><dt>Estratégias facilitadoras</dt><dd>{{ report.resources_and_strategies }}</dd></div>{% endif %}
+    {% if report.preserved_areas %}<div><dt>Áreas preservadas</dt><dd>{{ report.preserved_areas }}</dd></div>{% endif %}
+    {% if report.interests %}<div><dt>Interesses</dt><dd>{{ report.interests }}</dd></div>{% endif %}
+    {% if report.difficulties %}<div><dt>Dificuldades</dt><dd>{{ report.difficulties }}</dd></div>{% endif %}
+    {% if report.professional_conclusion %}<div><dt>Conclusão profissional</dt><dd>{{ report.professional_conclusion }}</dd></div>{% endif %}
+    {% if report.recommendations %}<div><dt>Recomendações</dt><dd>{{ report.recommendations }}</dd></div>{% endif %}
+    {% if report.family_guidance %}<div><dt>Orientação à família</dt><dd>{{ report.family_guidance }}</dd></div>{% endif %}
+    {% if report.school_guidance %}<div><dt>Orientação escolar</dt><dd>{{ report.school_guidance }}</dd></div>{% endif %}
+    {% if report.learning_strategies %}<div><dt>Estratégias de aprendizagem</dt><dd>{{ report.learning_strategies }}</dd></div>{% endif %}
+    {% if report.suggested_adaptations %}<div><dt>Adaptações</dt><dd>{{ report.suggested_adaptations }}</dd></div>{% endif %}
+    {% if report.referral_notes %}<div><dt>Encaminhamentos</dt><dd>{{ report.referral_notes }}</dd></div>{% endif %}
+  </dl>
+  <p class="muted" style="margin-top:1.5rem">Documento de apoio ao registo profissional. Não constitui diagnóstico automático.</p>
+</section>
+{% endblock %}

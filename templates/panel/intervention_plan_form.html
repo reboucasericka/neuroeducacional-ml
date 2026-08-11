@@ -1,0 +1,163 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{% if mode == 'new' %}Novo plano{% else %}Plano de intervenção{% endif %} — {{ patient.name }}{% endblock %}
+{% block page_title %}{% if plan %}{{ plan.title }}{% else %}Novo plano de intervenção{% endif %}{% endblock %}
+
+{% block panel_content %}
+<form method="post" class="anamnesis-form">
+  {% include "partials/csrf_field.html" %}
+  <section class="panel-card form-grid">
+    <label class="field field--full">
+      <span>Título *</span>
+      <input name="title" required value="{{ plan.title if plan else form.get('title','') }}" />
+    </label>
+    <label class="field">
+      <span>Estado</span>
+      <select name="status">
+        {% for key, label in status_labels.items() %}
+          <option value="{{ key }}" {% if plan and plan.status == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Devolutiva associada</span>
+      <select name="feedback_report_id">
+        <option value="">—</option>
+        {% for f in feedbacks %}
+          <option value="{{ f.id }}" {% if plan and plan.feedback_report_id == f.id %}selected{% endif %}>{{ f.title }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field"><span>Início</span>
+      <input type="date" name="start_date" value="{{ plan.start_date.strftime('%Y-%m-%d') if plan and plan.start_date else '' }}" /></label>
+    <label class="field"><span>Fim</span>
+      <input type="date" name="end_date" value="{{ plan.end_date.strftime('%Y-%m-%d') if plan and plan.end_date else '' }}" /></label>
+    <label class="field"><span>Revisão</span>
+      <input type="date" name="review_date" value="{{ plan.review_date.strftime('%Y-%m-%d') if plan and plan.review_date else '' }}" /></label>
+    <label class="field field--full"><span>Motivo</span>
+      <textarea name="reason" rows="2">{{ plan.reason if plan else '' }}</textarea></label>
+    <label class="field field--full"><span>Objetivo geral</span>
+      <textarea name="general_goal" rows="2">{{ plan.general_goal if plan else '' }}</textarea></label>
+    <label class="field field--full"><span>Notas</span>
+      <textarea name="notes" rows="2">{{ plan.notes if plan else '' }}</textarea></label>
+    <div class="field field--full">
+      <button class="btn btn--primary" type="submit" name="action" value="save_plan">{% if mode == 'new' %}Criar{% else %}Guardar plano{% endif %}</button>
+      <a class="btn btn--ghost" href="{{ url_for('intervention.interventions_list', patient_id=patient.id) }}">Lista</a>
+    </div>
+  </section>
+</form>
+
+{% if mode == 'edit' and plan %}
+<section class="panel-card">
+  <h3>Objetivos</h3>
+  {% for row in goal_rows %}
+    <article class="panel-card" style="margin-bottom:1rem;box-shadow:none">
+      <h4 style="margin:0 0 0.35rem">{{ row.goal.title }}</h4>
+      <p class="muted">
+        Estado: {{ dict(goal_statuses).get(row.goal.status, row.goal.status) }}
+        · {{ row.session_count }} sessão(ões)
+        {% if row.goal.domain %} · {{ row.goal.domain.name }}{% endif %}
+        {% if row.goal.skill %} · {{ row.goal.skill.name }}{% endif %}
+      </p>
+      {% if row.last_note %}
+        <p><strong>Última evolução:</strong> {{ row.last_note.summary or row.last_note.professional_interpretation or progress_labels.get(row.last_note.progress_status, row.last_note.progress_status) }}</p>
+      {% endif %}
+      {% if row.goal.success_criteria %}<p><strong>Critérios de sucesso:</strong> {{ row.goal.success_criteria }}</p>{% endif %}
+      {% if row.strategies %}
+        <p><strong>Estratégias:</strong>
+          {% for s in row.strategies %}{{ s.name }}{% if not loop.last %} · {% endif %}{% endfor %}
+        </p>
+      {% endif %}
+      <form method="post" style="display:inline">
+        {% include "partials/csrf_field.html" %}
+        <input type="hidden" name="action" value="cancel_goal" />
+        <input type="hidden" name="goal_id" value="{{ row.goal.id }}" />
+        <button class="linkish" type="submit">Cancelar objetivo</button>
+      </form>
+    </article>
+  {% else %}
+    <p class="muted">Ainda sem objetivos.</p>
+  {% endfor %}
+</section>
+
+<form method="post" class="panel-card form-grid">
+  {% include "partials/csrf_field.html" %}
+  <input type="hidden" name="action" value="add_goal" />
+  <h3 class="field--full" style="margin:0">Adicionar objetivo</h3>
+  <p class="muted field--full">Orientação SMART — preenchimento manual, sem gerador automático.</p>
+  <label class="field field--full"><span>O que pretende desenvolver? (título) *</span>
+    <input name="goal_title" required /></label>
+  <label class="field field--full"><span>Descrição</span><textarea name="goal_description" rows="2"></textarea></label>
+  <label class="field field--full"><span>Como será observado?</span><textarea name="how_observed" rows="2"></textarea></label>
+  <label class="field field--full"><span>Em que contexto?</span><textarea name="context_notes" rows="2"></textarea></label>
+  <label class="field field--full"><span>Como saberá se houve progresso?</span><textarea name="how_know_progress" rows="2"></textarea></label>
+  <label class="field"><span>Prazo de revisão</span><input type="date" name="review_deadline" /></label>
+  <label class="field"><span>Prioridade</span>
+    <select name="priority">{% for k,l in priorities %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select>
+  </label>
+  <label class="field"><span>Domínio cognitivo</span>
+    <select name="domain_id"><option value="">—</option>{% for d in domains %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}</select>
+  </label>
+  <label class="field"><span>Habilidade</span>
+    <select name="skill_id"><option value="">—</option>{% for s in skills %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}</select>
+  </label>
+  <label class="field field--full"><span>Linha de base</span><textarea name="baseline_notes" rows="2"></textarea></label>
+  <label class="field field--full"><span>Critérios de sucesso (definidos por si)</span><textarea name="success_criteria" rows="2"></textarea></label>
+  <label class="field"><span>Estado</span>
+    <select name="goal_status">{% for k,l in goal_statuses %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select>
+  </label>
+  <div class="field field--full"><button class="btn btn--primary" type="submit">Adicionar objetivo</button></div>
+</form>
+
+<form method="post" class="panel-card form-grid">
+  {% include "partials/csrf_field.html" %}
+  <input type="hidden" name="action" value="add_strategy" />
+  <h3 class="field--full" style="margin:0">Adicionar estratégia</h3>
+  <label class="field"><span>Objetivo</span>
+    <select name="strategy_goal_id" required>
+      {% for row in goal_rows %}
+        <option value="{{ row.goal.id }}">{{ row.goal.title }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field"><span>Nome *</span>
+    <input name="strategy_name" required list="strategy-examples" />
+    <datalist id="strategy-examples">{% for ex in strategy_examples %}<option value="{{ ex }}"></option>{% endfor %}</datalist>
+  </label>
+  <label class="field field--full"><span>Descrição</span><textarea name="strategy_description" rows="2"></textarea></label>
+  <label class="field"><span>Frequência</span><input name="strategy_frequency" /></label>
+  <label class="field"><span>Contexto</span><input name="strategy_context" /></label>
+  <label class="field field--full"><span>Materiais (não protegidos)</span><textarea name="strategy_materials" rows="2"></textarea></label>
+  <div class="field field--full"><button class="btn btn--primary" type="submit">Adicionar estratégia</button></div>
+</form>
+
+<section class="panel-card">
+  <h3>Revisões</h3>
+  {% for r in reviews %}
+    <p><strong>{{ r.review_date.strftime('%d/%m/%Y') }}</strong> · {{ dict(review_decisions).get(r.decision, r.decision) }}
+      {% if r.summary %} — {{ r.summary }}{% endif %}</p>
+  {% else %}
+    <p class="muted">Ainda sem revisões formais.</p>
+  {% endfor %}
+</section>
+
+<form method="post" class="panel-card form-grid">
+  {% include "partials/csrf_field.html" %}
+  <input type="hidden" name="action" value="add_review" />
+  <h3 class="field--full" style="margin:0">Nova revisão</h3>
+  <label class="field"><span>Data</span><input type="date" name="review_date" value="{{ '' }}" /></label>
+  <label class="field"><span>Decisão</span>
+    <select name="decision">{% for k,l in review_decisions %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select>
+  </label>
+  <label class="field field--full"><span>Síntese</span><textarea name="review_summary" rows="2"></textarea></label>
+  <label class="field field--full"><span>Revisão dos objetivos</span><textarea name="goals_review" rows="2"></textarea></label>
+  <label class="field field--full"><span>Alterações</span><textarea name="review_changes" rows="2"></textarea></label>
+  <div class="field field--full"><button class="btn btn--primary" type="submit">Registar revisão</button></div>
+</form>
+
+<p class="muted">
+  <a href="{{ url_for('care.sessions_new', patient_id=patient.id) }}">Nova sessão</a>
+  (selecione tipo Intervenção e associe objetivos) ·
+  <a href="{{ url_for('intervention.progress_notes_new', patient_id=patient.id) }}">Registar evolução</a>
+</p>
+{% endif %}
+{% endblock %}

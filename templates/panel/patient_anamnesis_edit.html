@@ -1,0 +1,93 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Preencher anamnese — {{ patient.name }}{% endblock %}
+{% block page_title %}Preencher: {{ anamnesis.template.name }}{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }} · {{ status_labels.get(anamnesis.status, anamnesis.status) }}</p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">
+        {{ patient.age_years }} anos · Nascimento: {{ patient.birth_date.strftime('%d/%m/%Y') }}
+        · Sexo: {{ patient.sex }}
+        {% if patient.education_level %} · Escolaridade: {{ patient.education_level }}{% endif %}
+      </p>
+      <p class="muted">Dados de identificação vêm da ficha do paciente (não duplicados nas respostas).</p>
+    </div>
+    <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='anamnesis') }}">Histórico</a>
+  </div>
+</section>
+
+{% if anamnesis.status == 'completed' %}
+  <section class="panel-card">
+    <p>Esta anamnese está concluída. Para editar, reabra explicitamente como rascunho.</p>
+    <form method="post">
+      {% include "partials/csrf_field.html" %}
+      <input type="hidden" name="action" value="reopen" />
+      <button class="btn btn--primary" type="submit">Reabrir como rascunho</button>
+    </form>
+  </section>
+{% else %}
+<form method="post" class="anamnesis-form">
+  {% include "partials/csrf_field.html" %}
+  {% for section, section_fields in grouped.items() %}
+    <section class="panel-card">
+      <h3>{{ section }}</h3>
+      {% for field in section_fields %}
+        {% set key = 'field_' ~ field.id %}
+        {% set current = values.get(field.id) %}
+        <div class="field {% if errors.get(field.id) %}field--error{% endif %}">
+          <span>{{ field.label }}{% if field.is_required %} *{% endif %}</span>
+          {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+
+          {% if field.field_type == 'textarea' %}
+            <textarea name="{{ key }}" rows="3" placeholder="{{ field.placeholder or '' }}">{{ current or '' }}</textarea>
+          {% elif field.field_type == 'number' %}
+            <input type="number" name="{{ key }}" value="{{ current or '' }}" placeholder="{{ field.placeholder or '' }}" />
+          {% elif field.field_type == 'date' %}
+            <input type="date" name="{{ key }}" value="{{ current or '' }}" />
+          {% elif field.field_type == 'select' %}
+            <select name="{{ key }}">
+              <option value="">—</option>
+              {% for opt in parse_options(field.options_json) %}
+                <option value="{{ opt }}" {% if current == opt %}selected{% endif %}>{{ opt }}</option>
+              {% endfor %}
+            </select>
+          {% elif field.field_type == 'radio' %}
+            <div class="choice-row">
+              {% for opt in parse_options(field.options_json) %}
+                <label><input type="radio" name="{{ key }}" value="{{ opt }}" {% if current == opt %}checked{% endif %} /> {{ opt }}</label>
+              {% endfor %}
+            </div>
+          {% elif field.field_type == 'checkbox' %}
+            <div class="choice-row">
+              {% for opt in parse_options(field.options_json) %}
+                <label><input type="checkbox" name="{{ key }}" value="{{ opt }}" {% if current and opt in current %}checked{% endif %} /> {{ opt }}</label>
+              {% endfor %}
+            </div>
+          {% elif field.field_type == 'boolean' %}
+            <label class="field--check"><input type="checkbox" name="{{ key }}" {% if current %}checked{% endif %} /> Sim</label>
+          {% else %}
+            <input type="text" name="{{ key }}" value="{{ current or '' }}" placeholder="{{ field.placeholder or '' }}" />
+          {% endif %}
+
+          {% if errors.get(field.id) %}<small class="error-text">{{ errors.get(field.id) }}</small>{% endif %}
+        </div>
+      {% endfor %}
+    </section>
+  {% endfor %}
+
+  <section class="panel-card">
+    <label class="field">
+      <span>Notas da anamnese</span>
+      <textarea name="notes" rows="3">{{ anamnesis.notes or '' }}</textarea>
+    </label>
+    <div class="form-actions">
+      <button class="btn btn--ghost" type="submit" name="action" value="draft">Guardar rascunho</button>
+      <button class="btn btn--primary" type="submit" name="action" value="complete">Concluir anamnese</button>
+    </div>
+  </section>
+</form>
+{% endif %}
+{% endblock %}

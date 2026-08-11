@@ -1,0 +1,47 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Devolutivas — {{ patient.name }}{% endblock %}
+{% block page_title %}Devolutivas{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }}</p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">{{ ui_hints.emphasis }}</p>
+    </div>
+    <div class="table-actions">
+      <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id) }}">Ficha</a>
+      <a class="btn btn--primary" href="{{ url_for('intervention.feedbacks_new', patient_id=patient.id) }}">+ Nova devolutiva</a>
+    </div>
+  </div>
+</section>
+
+<section class="panel-card">
+  <p class="muted">Texto escrito pelo profissional. Sem diagnóstico automático.</p>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr><th>Título</th><th>Data</th><th>Estado</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for r in rows %}
+          <tr>
+            <td>{{ r.title }}</td>
+            <td>{{ r.feedback_date.strftime('%d/%m/%Y') }}</td>
+            <td>{{ status_labels.get(r.status, r.status) }}</td>
+            <td class="table-actions">
+              <a href="{{ url_for('intervention.feedbacks_view', patient_id=patient.id, feedback_id=r.id) }}">Ver</a>
+              {% if r.status != 'completed' %}
+                · <a href="{{ url_for('intervention.feedbacks_edit', patient_id=patient.id, feedback_id=r.id) }}">Editar</a>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4">Ainda sem devolutivas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

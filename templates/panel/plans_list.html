@@ -1,0 +1,39 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Planos de avaliação — {{ patient.name }}{% endblock %}
+{% block page_title %}Plano de avaliação{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }}</p>
+      <h2>{{ patient.name }}</h2>
+    </div>
+    <div class="table-actions">
+      <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id) }}">Ficha</a>
+      <a class="btn btn--primary" href="{{ url_for('care.plans_new', patient_id=patient.id) }}">+ Novo plano</a>
+    </div>
+  </div>
+</section>
+<p class="muted">Hipóteses e objetivos são texto profissional — sem diagnóstico automático.</p>
+<section class="panel-card">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Título</th><th>Estado</th><th>Início</th><th>Atualização</th><th></th></tr></thead>
+      <tbody>
+        {% for p in plans %}
+          <tr>
+            <td>{{ p.title }}</td>
+            <td>{{ plan_statuses.get(p.status, p.status) }}</td>
+            <td>{{ p.planned_start_date.strftime('%d/%m/%Y') if p.planned_start_date else '—' }}</td>
+            <td>{{ p.updated_at.strftime('%d/%m/%Y') if p.updated_at else '—' }}</td>
+            <td><a href="{{ url_for('care.plans_edit', patient_id=patient.id, plan_id=p.id) }}">Abrir</a></td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5">Sem planos. Crie o planeamento antes das sessões de avaliação.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

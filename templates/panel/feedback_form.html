@@ -1,0 +1,126 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{% if mode == 'new' %}Nova devolutiva{% else %}Editar devolutiva{% endif %} — {{ patient.name }}{% endblock %}
+{% block page_title %}{% if mode == 'new' %}Nova devolutiva{% else %}Editar devolutiva{% endif %}{% endblock %}
+
+{% block panel_content %}
+<div class="panel-two feedback-layout">
+  <form method="post" class="anamnesis-form">
+    {% include "partials/csrf_field.html" %}
+    <section class="panel-card form-grid">
+      <p class="muted field--full">{{ ui_hints.emphasis }} Conclusões e recomendações são da sua responsabilidade profissional.</p>
+      <label class="field field--full">
+        <span>Título *</span>
+        <input name="title" required value="{{ report.title if report else form.get('title','') }}" />
+      </label>
+      <label class="field">
+        <span>Data</span>
+        <input type="date" name="feedback_date"
+          value="{{ report.feedback_date.strftime('%Y-%m-%d') if report else form.get('feedback_date','') }}" />
+      </label>
+      <label class="field field--full"><span>Síntese</span>
+        <textarea name="summary" rows="3">{{ report.summary if report else form.get('summary','') }}</textarea>
+      </label>
+      <label class="field field--full"><span>Motivo da avaliação</span>
+        <textarea name="reason_for_assessment" rows="2">{{ report.reason_for_assessment if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Resumo histórico</span>
+        <textarea name="history_summary" rows="3">{{ report.history_summary if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Resumo da avaliação</span>
+        <textarea name="assessment_summary" rows="3">{{ report.assessment_summary if report else '' }}</textarea>
+      </label>
+
+      <h3 class="field--full" style="margin:0.5rem 0 0">Potencialidades</h3>
+      <label class="field field--full"><span>Potencialidades / recursos pessoais</span>
+        <textarea name="strengths" rows="3">{{ report.strengths if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Estratégias que facilitaram o desempenho</span>
+        <textarea name="resources_and_strategies" rows="2">{{ report.resources_and_strategies if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Áreas preservadas</span>
+        <textarea name="preserved_areas" rows="2">{{ report.preserved_areas if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Interesses relevantes</span>
+        <textarea name="interests" rows="2">{{ report.interests if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Dificuldades observadas</span>
+        <textarea name="difficulties" rows="3">{{ report.difficulties if report else '' }}</textarea>
+      </label>
+
+      <label class="field field--full"><span>Conclusão profissional (texto seu — sem diagnóstico automático)</span>
+        <textarea name="professional_conclusion" rows="4">{{ report.professional_conclusion if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Recomendações gerais</span>
+        <textarea name="recommendations" rows="3">{{ report.recommendations if report else '' }}</textarea>
+      </label>
+
+      {% if ui_hints.guidance_first == 'school' %}
+        <label class="field field--full"><span>Orientação escolar / institucional</span>
+          <textarea name="school_guidance" rows="3">{{ report.school_guidance if report else '' }}</textarea>
+        </label>
+        <label class="field field--full"><span>Orientação à família</span>
+          <textarea name="family_guidance" rows="3">{{ report.family_guidance if report else '' }}</textarea>
+        </label>
+      {% else %}
+        <label class="field field--full"><span>Orientação à família</span>
+          <textarea name="family_guidance" rows="3">{{ report.family_guidance if report else '' }}</textarea>
+        </label>
+        <label class="field field--full"><span>Orientação escolar</span>
+          <textarea name="school_guidance" rows="3">{{ report.school_guidance if report else '' }}</textarea>
+        </label>
+      {% endif %}
+
+      <label class="field field--full"><span>Estratégias de aprendizagem</span>
+        <textarea name="learning_strategies" rows="2">{{ report.learning_strategies if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Adaptações sugeridas</span>
+        <textarea name="suggested_adaptations" rows="2">{{ report.suggested_adaptations if report else '' }}</textarea>
+      </label>
+      <label class="field field--full"><span>Notas de encaminhamento</span>
+        <textarea name="referral_notes" rows="2">{{ report.referral_notes if report else '' }}</textarea>
+      </label>
+
+      <div class="field field--full table-actions">
+        <button class="btn btn--ghost" type="submit" name="action" value="save">Guardar rascunho</button>
+        <button class="btn btn--primary" type="submit" name="action" value="complete">Concluir</button>
+        <a class="btn btn--ghost" href="{{ url_for('intervention.feedbacks_list', patient_id=patient.id) }}">Voltar</a>
+      </div>
+    </section>
+  </form>
+
+  <aside class="panel-card evidence-panel">
+    <h3>Evidências (somente leitura)</h3>
+    <p class="muted">Consulte — não é copiado automaticamente para o texto.</p>
+    <details open>
+      <summary>Anamnese recente</summary>
+      {% if evidence.anamnesis %}
+        <p>{{ evidence.anamnesis.status }} · atualizada {{ evidence.anamnesis.updated_at.strftime('%d/%m/%Y') if evidence.anamnesis.updated_at else '—' }}</p>
+      {% else %}<p class="muted">—</p>{% endif %}
+    </details>
+    <details>
+      <summary>Planos de avaliação</summary>
+      <ul>{% for p in evidence.plans %}<li>{{ p.title }} ({{ p.status }})</li>{% else %}<li class="muted">—</li>{% endfor %}</ul>
+    </details>
+    <details>
+      <summary>Sessões</summary>
+      <ul>{% for s in evidence.sessions %}<li>{{ s.session_date.strftime('%d/%m/%Y') }} · {{ s.session_type }}</li>{% else %}<li class="muted">—</li>{% endfor %}</ul>
+    </details>
+    <details>
+      <summary>Instrumentos</summary>
+      <p>{{ evidence.instruments|join(' · ') if evidence.instruments else '—' }}</p>
+    </details>
+    <details>
+      <summary>Resultados registados</summary>
+      <ul>{% for r in evidence.results %}<li>{{ r.instrument }}: {{ r.label }} = {{ r.value }}</li>{% else %}<li class="muted">—</li>{% endfor %}</ul>
+    </details>
+    <details>
+      <summary>Perfil cognitivo (indicadores)</summary>
+      <ul>{% for i in evidence.indicators %}<li>{{ i.label }}{% if i.value_text %} · {{ i.value_text }}{% elif i.value_numeric is not none %} · {{ i.value_numeric }}{% endif %}</li>{% else %}<li class="muted">—</li>{% endfor %}</ul>
+    </details>
+    <details>
+      <summary>Encaminhamentos</summary>
+      <ul>{% for ref in evidence.referrals %}<li>{{ ref.specialty }} ({{ ref.status }})</li>{% else %}<li class="muted">—</li>{% endfor %}</ul>
+    </details>
+  </aside>
+</div>
+{% endblock %}

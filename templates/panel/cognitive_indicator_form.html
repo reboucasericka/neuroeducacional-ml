@@ -1,0 +1,59 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Novo indicador — {{ patient.name }}{% endblock %}
+{% block page_title %}Indicador cognitivo{% endblock %}
+
+{% block panel_content %}
+<p class="muted">Entrada manual ou observação profissional. Anamnese não gera indicadores automáticos.</p>
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <label class="field">
+    <span>Domínio *</span>
+    <select name="domain_id" required>
+      <option value="">—</option>
+      {% for d in domains %}
+        <option value="{{ d.id }}" {% if form.get('domain_id')|string == d.id|string %}selected{% endif %}>{{ d.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Habilidade</span>
+    <select name="skill_id">
+      <option value="">—</option>
+      {% for s in skills %}
+        <option value="{{ s.id }}">{{ s.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field field--full">
+    <span>Etiqueta *</span>
+    <input name="label" required value="{{ form.get('label', '') }}" />
+  </label>
+  <label class="field">
+    <span>Valor numérico (opcional)</span>
+    <input name="value_numeric" value="{{ form.get('value_numeric', '') }}" />
+  </label>
+  <label class="field">
+    <span>Valor texto</span>
+    <input name="value_text" value="{{ form.get('value_text', '') }}" />
+  </label>
+  <label class="field">
+    <span>Unidade</span>
+    <input name="unit" value="{{ form.get('unit', '') }}" />
+  </label>
+  <label class="field">
+    <span>Tipo de fonte</span>
+    <select name="source_type">
+      <option value="manual_entry">Entrada manual</option>
+      <option value="professional_observation">Observação profissional</option>
+    </select>
+  </label>
+  <label class="field field--full">
+    <span>Interpretação profissional</span>
+    <textarea name="interpretation" rows="3">{{ form.get('interpretation', '') }}</textarea>
+  </label>
+  <div class="form-actions">
+    <a class="btn btn--ghost" href="{{ url_for('cognitive.cognitive_profile', patient_id=patient.id) }}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">Guardar</button>
+  </div>
+</form>
+{% endblock %}

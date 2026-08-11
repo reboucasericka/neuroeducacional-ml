@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Entrar — NeuroLearn Analytics{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+  <div class="container auth-grid">
+    <div class="auth-copy reveal">
+      <p class="eyebrow">Área profissional</p>
+      <h1>Acesso reservado a profissionais.</h1>
+      <p class="hero__lead">
+        Organize anamneses, avaliações e acompanhamento longitudinal num espaço
+        autenticado. Demonstração académica — sem dados reais.
+      </p>
+      <p class="auth-hint">
+        <strong>DEMO ONLY</strong> — apenas desenvolvimento local.<br />
+        Nunca uses estas credenciais num deploy público.<br />
+        <strong>demo@neurolearn.local</strong> / <strong>Demo@12345</strong>
+      </p>
+    </div>
+
+    <form class="auth-card reveal" method="post" action="{{ url_for('auth.login') }}">
+      {% include "partials/csrf_field.html" %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}" />{% endif %}
+      <h2>Entrar</h2>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul class="flash-list">
+            {% for category, message in messages %}
+              <li class="flash flash--{{ category }}">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+
+      <label class="field">
+        <span>Email</span>
+        {# type=text: browsers rejeitam .local em type=email #}
+        <input
+          type="text"
+          name="email"
+          required
+          inputmode="email"
+          autocomplete="username"
+          value="demo@neurolearn.local"
+        />
+      </label>
+      <label class="field">
+        <span>Palavra-passe</span>
+        <input type="password" name="password" required autocomplete="current-password" value="Demo@12345" />
+      </label>
+      <button class="btn btn--primary" type="submit">Entrar no painel</button>
+      <a class="auth-back" href="{{ url_for('index') }}">Voltar à página inicial</a>
+    </form>
+  </div>
+</section>
+{% endblock %}

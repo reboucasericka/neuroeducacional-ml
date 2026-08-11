@@ -1,0 +1,147 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{% if mode == 'new' %}Nova sessão{% else %}Editar sessão{% endif %} — {{ patient.name }}{% endblock %}
+{% block page_title %}{% if mode == 'new' %}Nova sessão{% else %}Editar sessão{% endif %}{% endblock %}
+
+{% block panel_content %}
+<form method="post" class="anamnesis-form">
+  {% include "partials/csrf_field.html" %}
+  <section class="panel-card form-grid">
+    <label class="field">
+      <span>Data *</span>
+      <input type="date" name="session_date" required
+        value="{{ session.session_date.strftime('%Y-%m-%d') if session else form.get('session_date','') }}" />
+    </label>
+    <label class="field"><span>Início</span><input type="time" name="start_time" value="{{ session.start_time if session else '' }}" /></label>
+    <label class="field"><span>Fim</span><input type="time" name="end_time" value="{{ session.end_time if session else '' }}" /></label>
+    <label class="field">
+      <span>Tipo</span>
+      <select name="session_type">
+        {% for key, label in session_types %}
+          <option value="{{ key }}" {% if session and session.session_type == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Estado</span>
+      <select name="status">
+        {% for key, label in session_statuses %}
+          <option value="{{ key }}" {% if session and session.status == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Plano de avaliação</span>
+      <select name="assessment_plan_id">
+        <option value="">—</option>
+        {% for p in plans %}
+          <option value="{{ p.id }}" {% if session and session.assessment_plan_id == p.id %}selected{% endif %}>{{ p.title }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Plano de intervenção (opcional)</span>
+      <select name="intervention_plan_id">
+        <option value="">—</option>
+        {% for p in intervention_plans|default([]) %}
+          <option value="{{ p.id }}" {% if session and session.intervention_plan_id == p.id %}selected{% endif %}>{{ p.title }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field field--full"><span>Objetivo da sessão</span><textarea name="objective" rows="2">{{ session.objective if session else '' }}</textarea></label>
+    {% if intervention_goals %}
+    <fieldset class="form-fieldset field--full">
+      <legend>Objetivos de intervenção trabalhados</legend>
+      <p class="muted">Pode selecionar vários (sessões de intervenção).</p>
+      {% for g in intervention_goals %}
+        <label class="field--check">
+          <input type="checkbox" name="intervention_goal_ids" value="{{ g.id }}"
+            {% if g.id in selected_goal_ids|default([]) %}checked{% endif %} />
+          <span>{{ g.title }}</span>
+        </label>
+      {% endfor %}
+    </fieldset>
+    {% endif %}
+    <fieldset class="form-fieldset">
+      <legend>Participantes</legend>
+      {% for opt in participants_options %}
+        <label class="field--check">
+          <input type="checkbox" name="participants" value="{{ opt }}" {% if opt in selected_participants %}checked{% endif %} />
+          <span>{{ opt }}</span>
+        </label>
+      {% endfor %}
+    </fieldset>
+    <label class="field field--full"><span>Resumo</span><textarea name="summary" rows="3">{{ session.summary if session else '' }}</textarea></label>
+    <label class="field field--full"><span>Observações profissionais</span><textarea name="professional_notes" rows="3">{{ session.professional_notes if session else '' }}</textarea></label>
+    <label class="field field--full"><span>Resposta do {{ subject_label|lower }}</span><textarea name="response_notes" rows="2">{{ session.response_notes if session else '' }}</textarea></label>
+    <label class="field">
+      <span>Nível de ajuda</span>
+      <select name="help_level">
+        <option value="">—</option>
+        {% for key, label in help_levels|default([]) %}
+          <option value="{{ key }}" {% if session and session.help_level == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field field--full"><span>Potencialidades observadas</span><textarea name="strengths_observed" rows="2">{{ session.strengths_observed if session else '' }}</textarea></label>
+    <label class="field field--full"><span>Dificuldades observadas</span><textarea name="difficulties_observed" rows="2">{{ session.difficulties_observed if session else '' }}</textarea></label>
+    <label class="field field--full"><span>Estratégias que facilitaram o desempenho</span><textarea name="facilitating_strategies" rows="2">{{ session.facilitating_strategies if session else '' }}</textarea></label>
+    <label class="field field--full"><span>Próximos passos</span><textarea name="next_steps" rows="2">{{ session.next_steps if session else '' }}</textarea></label>
+    <label class="field">
+      <span>Avaliação associada (opcional)</span>
+      <select name="assessment_id">
+        <option value="">—</option>
+        {% for a in assessments %}
+          <option value="{{ a.id }}" {% if session and session.assessment_id == a.id %}selected{% endif %}>{{ a.assessment_date.strftime('%d/%m/%Y') }} — {{ a.reason or 'Avaliação' }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Instrumento aplicado na sessão (opcional)</span>
+      <select name="assessment_instrument_id">
+        <option value="">—</option>
+        {% for ai in instruments %}
+          <option value="{{ ai.id }}" {% if session and session.assessment_instrument_id == ai.id %}selected{% endif %}>{{ ai.display_name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </section>
+
+  <section class="panel-card">
+    <h3>Roteiro de observação</h3>
+    <p class="muted">Observações do profissional — sem score automático. Redação original.</p>
+    <div class="choice-row" style="display:grid;gap:0.45rem">
+      {% for category, label in observation_checklist %}
+        <label class="field--check">
+          <input type="checkbox" name="obs|{{ category }}|{{ label }}" {% if label in observed_labels %}checked{% endif %} />
+          <span><small class="muted">{{ category }}</small> — {{ label }}</span>
+        </label>
+      {% endfor %}
+    </div>
+    <label class="field" style="margin-top:1rem">
+      <span>Notas de observação</span>
+      <textarea name="observation_notes" rows="2"></textarea>
+    </label>
+  </section>
+
+  <section class="panel-card form-grid">
+    <h3 class="field--full">Atividade não padronizada (opcional)</h3>
+    <p class="muted field--full">Não confundir com teste padronizado.</p>
+    <label class="field"><span>Nome</span><input name="activity_name" /></label>
+    <label class="field">
+      <span>Categoria</span>
+      <select name="activity_category">
+        {% for key, label in activity_categories %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="field field--full"><span>Objetivo</span><input name="activity_objective" /></label>
+    <label class="field field--full"><span>Descrição</span><textarea name="activity_description" rows="2"></textarea></label>
+    <label class="field field--full"><span>Resposta observada</span><textarea name="activity_observed_response" rows="2"></textarea></label>
+    <label class="field field--full"><span>Notas</span><textarea name="activity_notes" rows="2"></textarea></label>
+  </section>
+
+  <div class="form-actions">
+    <a class="btn btn--ghost" href="{{ url_for('care.sessions_list', patient_id=patient.id) }}">Cancelar</a>
+    <button class="btn btn--primary" type="submit">Guardar sessão</button>
+  </div>
+</form>
+{% endblock %}

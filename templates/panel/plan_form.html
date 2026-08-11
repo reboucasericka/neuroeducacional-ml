@@ -1,0 +1,92 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}{% if mode == 'new' %}Novo plano{% else %}Plano{% endif %} — {{ patient.name }}{% endblock %}
+{% block page_title %}{% if mode == 'new' %}Novo plano de avaliação{% else %}{{ plan.title }}{% endif %}{% endblock %}
+
+{% block panel_content %}
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <input type="hidden" name="action" value="save" />
+  <label class="field field--full">
+    <span>Título *</span>
+    <input name="title" required value="{{ plan.title if plan else form.get('title','') }}" />
+  </label>
+  <label class="field">
+    <span>Estado</span>
+    <select name="status">
+      {% for key, label in plan_statuses %}
+        <option value="{{ key }}" {% if plan and plan.status == key %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label class="field">
+    <span>Sessões estimadas</span>
+    <input type="number" name="estimated_sessions" value="{{ plan.estimated_sessions if plan and plan.estimated_sessions is not none else '' }}" />
+  </label>
+  <label class="field">
+    <span>Início planeado</span>
+    <input type="date" name="planned_start_date" value="{{ plan.planned_start_date.strftime('%Y-%m-%d') if plan and plan.planned_start_date else '' }}" />
+  </label>
+  <label class="field">
+    <span>Fim planeado</span>
+    <input type="date" name="planned_end_date" value="{{ plan.planned_end_date.strftime('%Y-%m-%d') if plan and plan.planned_end_date else '' }}" />
+  </label>
+  <label class="field field--full">
+    <span>Motivo</span>
+    <textarea name="reason" rows="2">{{ plan.reason if plan else '' }}</textarea>
+  </label>
+  <label class="field field--full">
+    <span>Objetivos gerais</span>
+    <textarea name="objectives" rows="2">{{ plan.objectives if plan else '' }}</textarea>
+  </label>
+  <label class="field field--full">
+    <span>Hipóteses iniciais (texto profissional — não diagnóstico)</span>
+    <textarea name="initial_hypotheses" rows="3">{{ plan.initial_hypotheses if plan else '' }}</textarea>
+  </label>
+  <label class="field field--full">
+    <span>Notas</span>
+    <textarea name="notes" rows="2">{{ plan.notes if plan else '' }}</textarea>
+  </label>
+  <div class="form-actions">
+    <a class="btn btn--ghost" href="{{ url_for('care.plans_list', patient_id=patient.id) }}">Voltar</a>
+    <button class="btn btn--primary" type="submit">Guardar plano</button>
+  </div>
+</form>
+
+{% if plan %}
+<section class="panel-card">
+  <h3>Objetivos específicos</h3>
+  <p class="muted">Definidos pelo profissional — não gerados automaticamente a partir da anamnese.</p>
+  <ul class="panel-list">
+    {% for o in objectives %}
+      <li>
+        <strong>{{ o.title }}</strong>
+        <span>{{ o.status }}{% if o.domain %} · {{ o.domain.name }}{% endif %}</span>
+        <form method="post" style="display:inline">
+          {% include "partials/csrf_field.html" %}
+          <input type="hidden" name="action" value="toggle_objective" />
+          <input type="hidden" name="objective_id" value="{{ o.id }}" />
+          <button class="linkish" type="submit">Marcar {{ 'aberto' if o.status == 'done' else 'concluído' }}</button>
+        </form>
+      </li>
+    {% else %}
+      <li><span class="muted">Sem objetivos ainda.</span></li>
+    {% endfor %}
+  </ul>
+  <form method="post" class="form-grid" style="margin-top:1rem">
+    {% include "partials/csrf_field.html" %}
+    <input type="hidden" name="action" value="add_objective" />
+    <label class="field field--full"><span>Novo objetivo *</span><input name="obj_title" required /></label>
+    <label class="field field--full"><span>Descrição</span><textarea name="obj_description" rows="2"></textarea></label>
+    <label class="field">
+      <span>Domínio (opcional)</span>
+      <select name="obj_domain_id">
+        <option value="">—</option>
+        {% for d in domains %}<option value="{{ d.id }}">{{ d.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label class="field"><span>Prioridade</span><input name="obj_priority" placeholder="ex.: alta" /></label>
+    <div class="form-actions"><button class="btn btn--primary" type="submit">Adicionar objetivo</button></div>
+  </form>
+</section>
+{% endif %}
+{% endblock %}

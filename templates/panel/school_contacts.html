@@ -1,0 +1,31 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Contacto escolar — {{ patient.name }}{% endblock %}
+{% block page_title %}Contacto escolar{% endblock %}
+
+{% block panel_content %}
+<form class="panel-card form-grid" method="post">
+  {% include "partials/csrf_field.html" %}
+  <label class="field"><span>Data</span><input type="date" name="contact_date" /></label>
+  <label class="field"><span>Escola</span><input name="school_name" /></label>
+  <label class="field"><span>Contacto</span><input name="contact_person" /></label>
+  <label class="field"><span>Função</span><input name="role" /></label>
+  <label class="field field--full"><span>Finalidade</span><input name="purpose" /></label>
+  <label class="field field--full"><span>Resumo</span><textarea name="summary" rows="3"></textarea></label>
+  <label class="field field--full"><span>Recomendações partilhadas</span><textarea name="recommendations" rows="2"></textarea></label>
+  <label class="field field--full"><span>Notas</span><textarea name="notes" rows="2"></textarea></label>
+  <div class="form-actions"><button class="btn btn--primary" type="submit">Guardar contacto</button></div>
+</form>
+<section class="panel-card">
+  <ul class="timeline">
+    {% for r in rows %}
+      <li>
+        <time>{{ r.contact_date.strftime('%d/%m/%Y') }}</time>
+        <strong>{{ r.school_name or 'Escola' }}</strong>
+        <p>{{ r.summary or r.purpose or '—' }}</p>
+      </li>
+    {% else %}
+      <li><p class="muted">Sem contactos escolares.</p></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endblock %}

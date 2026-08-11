@@ -1,0 +1,86 @@
+{% extends "panel/base_panel.html" %}
+{% block title %}Avaliação — {{ patient.name }}{% endblock %}
+{% block page_title %}Avaliação{% endblock %}
+
+{% block panel_content %}
+<section class="patient-context panel-card">
+  <div class="patient-hero" style="box-shadow:none;border:0;padding:0;background:transparent">
+    <div>
+      <p class="eyebrow">{{ patient.internal_code }} · {{ status_labels.get(assessment.status, assessment.status) }}</p>
+      <h2>{{ patient.name }}</h2>
+      <p class="muted">
+        {{ patient.age_years }} anos · Sexo: {{ patient.sex }}
+        {% if patient.education_level %} · Escolaridade: {{ patient.education_level }}{% endif %}
+      </p>
+    </div>
+    <div class="table-actions">
+      <a class="btn btn--ghost" href="{{ url_for('panel.patient_detail', patient_id=patient.id, tab='assessments') }}">Histórico</a>
+      {% if assessment.status == 'draft' %}
+        <a class="btn btn--primary" href="{{ url_for('assessment.patient_assessment_edit', patient_id=patient.id, assessment_id=assessment.id) }}">Continuar</a>
+      {% elif assessment.status == 'completed' %}
+        <a class="btn btn--primary" href="{{ url_for('assessment.patient_assessment_edit', patient_id=patient.id, assessment_id=assessment.id) }}">Reabrir / editar</a>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="panel-card">
+  <h3>Dados da avaliação</h3>
+  <dl class="readonly-dl">
+    <div><dt>Data</dt><dd>{{ assessment.assessment_date.strftime('%d/%m/%Y') }}</dd></div>
+    <div><dt>Motivo</dt><dd>{{ assessment.reason or '—' }}</dd></div>
+    <div><dt>Profissional</dt><dd>{{ assessment.professional.name if assessment.professional else '—' }}</dd></div>
+    <div><dt>Estado</dt><dd>{{ status_labels.get(assessment.status, assessment.status) }}</dd></div>
+    <div><dt>Concluída em</dt><dd>{{ assessment.completed_at.strftime('%d/%m/%Y %H:%M') if assessment.completed_at else '—' }}</dd></div>
+    <div><dt>Notas gerais</dt><dd>{{ assessment.general_notes or '—' }}</dd></div>
+  </dl>
+</section>
+
+{% for row in item_rows %}
+  {% set item = row.item %}
+  <section class="panel-card">
+    <div class="panel-card__head">
+      <h3>{{ item.display_name }}{% if item.display_short_name %} <span class="pill">{{ item.display_short_name }}</span>{% endif %}</h3>
+      <span class="muted">{{ ai_status_labels.get(item.status, item.status) }}</span>
+    </div>
+    <p class="manual-result-badge">Resultado informado pelo profissional.</p>
+    <dl class="readonly-dl">
+      <div><dt>Categoria</dt><dd>{{ item.instrument.category if item.instrument else '—' }}</dd></div>
+      <div><dt>Resultado bruto</dt><dd>{{ item.raw_score if item.raw_score is not none else '—' }}</dd></div>
+      <div><dt>Resultado padronizado</dt><dd>{{ item.standard_score if item.standard_score is not none else '—' }}</dd></div>
+      <div><dt>Classificação</dt><dd>{{ item.classification or '—' }}</dd></div>
+      <div><dt>Interpretação profissional</dt><dd>{{ item.professional_interpretation or '—' }}</dd></div>
+      <div><dt>Observações</dt><dd>{{ item.notes or '—' }}</dd></div>
+    </dl>
+    {% if row.metrics %}
+      <h4 class="section-title">Métricas</h4>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Métrica</th>
+              <th>Bruto</th>
+              <th>Normalizado</th>
+              <th>Unidade</th>
+              <th>Interpretação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in row.metrics %}
+              <tr>
+                <td>{{ m.metric_name }}</td>
+                <td>{{ m.raw_value or '—' }}</td>
+                <td>{{ m.normalized_value or '—' }}</td>
+                <td>{{ m.unit or '—' }}</td>
+                <td>{{ m.interpretation or '—' }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% endif %}
+  </section>
+{% else %}
+  <section class="panel-card"><p class="muted">Sem instrumentos nesta avaliação.</p></section>
+{% endfor %}
+{% endblock %}
